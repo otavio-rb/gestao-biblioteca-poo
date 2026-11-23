@@ -1,0 +1,110 @@
+@model PainelViewModel
+@{
+    ViewData["Title"] = "Painel";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Circulacao do acervo</h1>
+        <p>Emprestimos, reservas, renovacoes, devolucoes e multas da biblioteca digital.</p>
+    </div>
+    <div class="acoes">
+        <a class="botao" asp-controller="Emprestimos" asp-action="Registrar">Novo emprestimo</a>
+        <a class="botao botao-secundario" asp-controller="Reservas" asp-action="Criar">Nova reserva</a>
+    </div>
+</div>
+
+<div class="grade-indicadores">
+    <div class="indicador">
+        <span>Emprestimos ativos</span>
+        <strong>@Model.EmprestimosAtivos</strong>
+    </div>
+    <div class="indicador">
+        <span>Em atraso</span>
+        <strong>@Model.EmprestimosEmAtraso</strong>
+    </div>
+    <div class="indicador">
+        <span>Encerrados</span>
+        <strong>@Model.EmprestimosEncerrados</strong>
+    </div>
+    <div class="indicador">
+        <span>Reservas pendentes</span>
+        <strong>@Model.ReservasPendentes</strong>
+    </div>
+    <div class="indicador">
+        <span>Licencas livres</span>
+        <strong>@Model.LicencasDisponiveis</strong>
+    </div>
+    <div class="indicador">
+        <span>Multas em aberto</span>
+        <strong>@Model.MultasEmAberto.ToString("C")</strong>
+    </div>
+</div>
+
+<div class="grade-duas">
+    <section class="cartao">
+        <h2>Ultimos emprestimos</h2>
+        @if (Model.UltimosEmprestimos.Count == 0)
+        {
+            <p class="vazio">Nenhum emprestimo registrado ate o momento.</p>
+        }
+        else
+        {
+            <ul class="lista-simples">
+                @foreach (var emprestimo in Model.UltimosEmprestimos)
+                {
+                    <li>
+                        <strong>@emprestimo.TituloLivro</strong><br />
+                        <small>@emprestimo.NomeLeitor - retirada em @emprestimo.DataRetirada.ToString("dd/MM/yyyy")</small>
+                        <div class="acoes" style="margin-top:8px">
+                            @if (emprestimo.EstaEncerrado)
+                            {
+                                <span class="etiqueta etiqueta-neutra">@emprestimo.Status</span>
+                            }
+                            else if (emprestimo.EstaEmAtraso())
+                            {
+                                <span class="etiqueta etiqueta-atencao">@emprestimo.CalcularDiasAtraso() dia(s) de atraso</span>
+                            }
+                            else
+                            {
+                                <span class="etiqueta etiqueta-sucesso">No prazo ate @emprestimo.DataPrevista.ToString("dd/MM")</span>
+                            }
+                            <a class="botao botao-secundario botao-pequeno" asp-controller="Emprestimos" asp-action="Detalhes" asp-route-id="@emprestimo.Id">Abrir</a>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <section class="cartao">
+        <h2>Fila de reservas</h2>
+        @if (Model.FilaDeReservas.Count == 0)
+        {
+            <p class="vazio">Nenhuma reserva pendente.</p>
+        }
+        else
+        {
+            <ul class="lista-simples">
+                @foreach (var reserva in Model.FilaDeReservas)
+                {
+                    <li>
+                        <strong>@reserva.TituloLivro</strong><br />
+                        <small>@reserva.NomeLeitor - posicao @reserva.PosicaoFila na fila</small>
+                        <div class="acoes" style="margin-top:8px">
+                            @if (reserva.Status == StatusReserva.Disponivel)
+                            {
+                                <span class="etiqueta etiqueta-sucesso">Retirar ate @reserva.DataLimiteRetirada.ToString("dd/MM")</span>
+                            }
+                            else
+                            {
+                                <span class="etiqueta">Aguardando licenca</span>
+                            }
+                            <a class="botao botao-secundario botao-pequeno" asp-controller="Reservas" asp-action="Index">Ver reservas</a>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</div>

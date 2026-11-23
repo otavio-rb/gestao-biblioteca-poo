@@ -1,0 +1,143 @@
+@model Emprestimo
+@{
+    ViewData["Title"] = $"Emprestimo #{Model.Id}";
+    var reservaPendente = ViewBag.ReservaPendente is true;
+    var podeRenovar = Model.PodeRenovar(reservaPendente);
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Emprestimo #@Model.Id</h1>
+        <p>@Model.TituloLivro - @Model.NomeLeitor</p>
+    </div>
+    <a class="botao botao-secundario" asp-action="Index">Voltar</a>
+</div>
+
+<div class="grade-duas">
+    <section class="cartao">
+        <h2>Situacao</h2>
+        <table>
+            <tbody>
+                <tr><th>Status</th><td>@Model.Status</td></tr>
+                <tr><th>Retirada</th><td>@Model.DataRetirada.ToString("dd/MM/yyyy HH:mm")</td></tr>
+                <tr><th>Previsto</th><td>@Model.DataPrevista.ToString("dd/MM/yyyy")</td></tr>
+                <tr><th>Devolucao</th><td>@(Model.DataDevolucao?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td></tr>
+                <tr><th>Renovacoes</th><td>@Model.Renovacoes.Count de @Emprestimo.MaximoRenovacoes</td></tr>
+                <tr><th>Valor de referencia</th><td>@Model.ValorReferenciaObra.ToString("C")</td></tr>
+                <tr>
+                    <th>Atraso</th>
+                    <td>
+                        @if (Model.EstaEmAtraso())
+                        {
+                            <span class="etiqueta etiqueta-atencao">@Model.CalcularDiasAtraso() dia(s)</span>
+                        }
+                        else
+                        {
+                            <span class="etiqueta etiqueta-sucesso">Sem atraso</span>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <th>Fila de reserva</th>
+                    <td>@(reservaPendente ? "Existe reserva pendente para o exemplar" : "Nenhuma reserva pendente")</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="acoes" style="margin-top:16px">
+            @if (!Model.EstaEncerrado)
+            {
+                <form asp-action="Renovar" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button class="botao" type="submit" disabled="@(!podeRenovar)">Renovar por mais 14 dias</button>
+                </form>
+                <form asp-action="Devolver" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button class="botao botao-secundario" type="submit">Registrar devolucao</button>
+                </form>
+            }
+            else
+            {
+                <span class="etiqueta etiqueta-neutra">Emprestimo encerrado</span>
+            }
+        </div>
+        @if (!Model.EstaEncerrado && !podeRenovar)
+        {
+            <p class="descricao" style="margin-top:10px">
+                A renovacao esta bloqueada: limite atingido, emprestimo em atraso ou reserva pendente para o exemplar.
+            </p>
+        }
+    </section>
+
+    <section class="cartao">
+        <h2>Multa</h2>
+        @if (Model.Multa is null)
+        {
+            <p class="vazio">Nenhuma multa gerada para este emprestimo.</p>
+        }
+        else
+        {
+            <table>
+                <tbody>
+                    <tr><th>Dias de atraso</th><td>@Model.Multa.DiasAtraso</td></tr>
+                    <tr><th>Valor diario</th><td>@Model.Multa.ValorDiario.ToString("C")</td></tr>
+                    <tr><th>Teto (valor da obra)</th><td>@Model.Multa.ValorReferenciaObra.ToString("C")</td></tr>
+                    <tr><th>Valor total</th><td><strong>@Model.Multa.ValorTotal.ToString("C")</strong></td></tr>
+                    <tr>
+                        <th>Situacao</th>
+                        <td>
+                            @if (Model.Multa.Paga)
+                            {
+                                <span class="etiqueta etiqueta-sucesso">Quitada</span>
+                            }
+                            else
+                            {
+                                <span class="etiqueta etiqueta-atencao">Em aberto</span>
+                            }
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            @if (!Model.Multa.Paga)
+            {
+                <form asp-action="QuitarMulta" asp-route-id="@Model.Id" method="post" style="margin-top:14px">
+                    @Html.AntiForgeryToken()
+                    <button class="botao" type="submit">Quitar multa</button>
+                </form>
+            }
+        }
+    </section>
+</div>
+
+<section class="cartao">
+    <h2>Historico de renovacoes</h2>
+    @if (Model.Renovacoes.Count == 0)
+    {
+        <p class="vazio">Nenhuma renovacao registrada.</p>
+    }
+    else
+    {
+        <div class="tabela-rolavel">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sequencia</th>
+                        <th>Data da renovacao</th>
+                        <th>Nova data prevista</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var renovacao in Model.Renovacoes)
+                    {
+                        <tr>
+                            <td>@renovacao.Sequencia</td>
+                            <td>@renovacao.DataRenovacao.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@renovacao.NovaDataPrevista.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

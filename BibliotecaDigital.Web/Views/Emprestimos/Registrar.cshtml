@@ -1,0 +1,44 @@
+@model EmprestimoFormViewModel
+@{
+    ViewData["Title"] = "Novo emprestimo";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Novo emprestimo</h1>
+        <p>O sistema valida bloqueio, multas em aberto, limite do perfil e disponibilidade de licenca.</p>
+    </div>
+    <a class="botao botao-secundario" asp-action="Index">Voltar</a>
+</div>
+
+<div class="cartao">
+    <form asp-action="Registrar" method="post" class="formulario">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+        <div class="campo">
+            <label asp-for="LeitorId"></label>
+            <select asp-for="LeitorId" asp-items="Model.Leitores">
+                <option value="">Selecione o leitor</option>
+            </select>
+            <span asp-validation-for="LeitorId" class="validacao"></span>
+        </div>
+
+        <div class="campo">
+            <label asp-for="ExemplarId"></label>
+            <select asp-for="ExemplarId" asp-items="Model.Exemplares">
+                <option value="">Selecione o exemplar</option>
+            </select>
+            <span asp-validation-for="ExemplarId" class="validacao"></span>
+        </div>
+
+        <div class="rodape-formulario">
+            <button class="botao" type="submit">Registrar emprestimo</button>
+            <a class="botao botao-secundario" asp-action="Index">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

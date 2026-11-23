@@ -1,0 +1,66 @@
+@model List<Emprestimo>
+@{
+    ViewData["Title"] = "Emprestimos";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Emprestimos</h1>
+        <p>Prazo padrao de 14 dias, ate duas renovacoes e multa diaria limitada ao valor da obra.</p>
+    </div>
+    <a class="botao" asp-action="Registrar">Novo emprestimo</a>
+</div>
+
+<div class="cartao">
+    @if (Model.Count == 0)
+    {
+        <p class="vazio">Nenhum emprestimo registrado.</p>
+    }
+    else
+    {
+        <div class="tabela-rolavel">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Obra</th>
+                        <th>Leitor</th>
+                        <th>Retirada</th>
+                        <th>Previsto</th>
+                        <th>Devolucao</th>
+                        <th>Situacao</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var emprestimo in Model)
+                    {
+                        <tr>
+                            <td>@emprestimo.TituloLivro</td>
+                            <td>@emprestimo.NomeLeitor</td>
+                            <td>@emprestimo.DataRetirada.ToString("dd/MM/yyyy")</td>
+                            <td>@emprestimo.DataPrevista.ToString("dd/MM/yyyy")</td>
+                            <td>@(emprestimo.DataDevolucao?.ToString("dd/MM/yyyy") ?? "-")</td>
+                            <td>
+                                @if (emprestimo.EstaEncerrado)
+                                {
+                                    <span class="etiqueta etiqueta-neutra">@emprestimo.Status</span>
+                                }
+                                else if (emprestimo.EstaEmAtraso())
+                                {
+                                    <span class="etiqueta etiqueta-atencao">@emprestimo.CalcularDiasAtraso() dia(s) de atraso</span>
+                                }
+                                else
+                                {
+                                    <span class="etiqueta etiqueta-sucesso">@emprestimo.Status</span>
+                                }
+                            </td>
+                            <td>
+                                <a class="botao botao-secundario botao-pequeno" asp-action="Detalhes" asp-route-id="@emprestimo.Id">Abrir</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

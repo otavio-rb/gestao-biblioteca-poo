@@ -1,0 +1,86 @@
+@model List<Reserva>
+@{
+    ViewData["Title"] = "Reservas";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Reservas</h1>
+        <p>Fila de espera por exemplar. A reserva expira se o leitor nao retirar a obra no prazo de aviso.</p>
+    </div>
+    <a class="botao" asp-action="Criar">Nova reserva</a>
+</div>
+
+<div class="cartao">
+    @if (Model.Count == 0)
+    {
+        <p class="vazio">Nenhuma reserva registrada.</p>
+    }
+    else
+    {
+        <div class="tabela-rolavel">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Obra</th>
+                        <th>Leitor</th>
+                        <th>Reservada em</th>
+                        <th>Retirar ate</th>
+                        <th>Fila</th>
+                        <th>Status</th>
+                        <th>Acoes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var reserva in Model)
+                    {
+                        <tr>
+                            <td>@reserva.TituloLivro</td>
+                            <td>@reserva.NomeLeitor</td>
+                            <td>@reserva.DataReserva.ToString("dd/MM/yyyy")</td>
+                            <td>@reserva.DataLimiteRetirada.ToString("dd/MM/yyyy")</td>
+                            <td>@reserva.PosicaoFila</td>
+                            <td>
+                                @if (reserva.Status == StatusReserva.Disponivel)
+                                {
+                                    <span class="etiqueta etiqueta-sucesso">Disponivel</span>
+                                }
+                                else if (reserva.Status == StatusReserva.Aguardando)
+                                {
+                                    <span class="etiqueta">Aguardando</span>
+                                }
+                                else
+                                {
+                                    <span class="etiqueta etiqueta-neutra">@reserva.Status</span>
+                                }
+                            </td>
+                            <td>
+                                @if (reserva.EstaPendente)
+                                {
+                                    <div class="acoes">
+                                        <form asp-action="Efetivar" asp-route-id="@reserva.Id" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button class="botao botao-pequeno" type="submit">Efetivar</button>
+                                        </form>
+                                        <form asp-action="Cancelar" asp-route-id="@reserva.Id" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button class="botao botao-secundario botao-pequeno" type="submit">Cancelar</button>
+                                        </form>
+                                        <form asp-action="Expirar" asp-route-id="@reserva.Id" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button class="botao botao-perigo botao-pequeno" type="submit">Expirar</button>
+                                        </form>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="descricao">-</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
