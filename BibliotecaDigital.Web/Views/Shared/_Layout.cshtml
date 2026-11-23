@@ -1,0 +1,46 @@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Biblioteca Digital</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="topo">
+        <div class="topo-conteudo">
+            <a class="marca" asp-controller="Home" asp-action="Index">
+                <span class="marca-icone">BD</span>
+                <span>
+                    <strong>Biblioteca Digital</strong>
+                    <small>FATEC Ribeirao Preto - ADS</small>
+                </span>
+            </a>
+<nav class="menu">
+    <a class="@(controller == "Home" ? "ativo" : null)" asp-controller="Home" asp-action="Index">Painel</a>
+    <a class="@(controller == "Emprestimos" ? "ativo" : null)" asp-controller="Emprestimos" asp-action="Index">Emprestimos</a>
+    <a class="@(controller == "Reservas" ? "ativo" : null)" asp-controller="Reservas" asp-action="Index">Reservas</a>
+    <a class="@(controller == "Usuarios" ? "ativo" : null)" asp-controller="Usuarios" asp-action="Index">Usuarios</a>
+</nav>
+        </div>
+    </header>
+
+    <main class="conteudo">
+        @if (TempData["MensagemSucesso"] is string sucesso)
+        {
+            <div class="alerta alerta-sucesso" role="status">@sucesso</div>
+        }
+        @if (TempData["MensagemAlerta"] is string alerta)
+        {
+            <div class="alerta alerta-atencao" role="alert">@alerta</div>
+        }
+
+        @RenderBody()
+    </main>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
