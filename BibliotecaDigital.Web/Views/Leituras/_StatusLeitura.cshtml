@@ -1,0 +1,17 @@
+@model StatusLeitura
+
+@switch (Model)
+{
+    case StatusLeitura.NaoIniciada:
+        <span class="etiqueta etiqueta-neutra">Nao iniciada</span>
+        break;
+    case StatusLeitura.EmAndamento:
+        <span class="etiqueta">Em andamento</span>
+        break;
+    case StatusLeitura.Pausada:
+        <span class="etiqueta etiqueta-atencao">Pausada</span>
+        break;
+    case StatusLeitura.Concluida:
+        <span class="etiqueta etiqueta-sucesso">Concluida</span>
+        break;
+}

@@ -1,5 +1,9 @@
 PRAGMA foreign_keys = ON;
 
+DROP TABLE IF EXISTS Favorito;
+DROP TABLE IF EXISTS Comentario;
+DROP TABLE IF EXISTS Avaliacao;
+DROP TABLE IF EXISTS Leitura;
 DROP TABLE IF EXISTS Multa;
 DROP TABLE IF EXISTS Devolucao;
 DROP TABLE IF EXISTS Renovacao;
@@ -105,12 +109,66 @@ CREATE TABLE Multa (
     CONSTRAINT CK_Multa_Teto CHECK (ValorTotal <= ValorReferenciaObra)
 );
 
+CREATE TABLE Leitura (
+    Id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    UsuarioId         INTEGER NOT NULL,
+    LivroId           INTEGER NOT NULL,
+    Status            INTEGER NOT NULL,
+    PaginaAtual       INTEGER NOT NULL DEFAULT 0,
+    TotalPaginas      INTEGER NOT NULL,
+    UltimaAtualizacao TEXT    NOT NULL,
+    DataInicio        TEXT    NULL,
+    DataConclusao     TEXT    NULL,
+    CONSTRAINT FK_Leitura_Usuario FOREIGN KEY (UsuarioId) REFERENCES Usuario (Id),
+    CONSTRAINT FK_Leitura_Livro   FOREIGN KEY (LivroId)   REFERENCES Livro (Id),
+    CONSTRAINT UQ_Leitura_UsuarioLivro UNIQUE (UsuarioId, LivroId),
+    CONSTRAINT CK_Leitura_Paginas CHECK (TotalPaginas > 0 AND PaginaAtual BETWEEN 0 AND TotalPaginas)
+);
+
+CREATE TABLE Avaliacao (
+    Id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    UsuarioId     INTEGER NOT NULL,
+    LivroId       INTEGER NOT NULL,
+    Nota          INTEGER NOT NULL,
+    DataAvaliacao TEXT    NOT NULL,
+    CONSTRAINT FK_Avaliacao_Usuario FOREIGN KEY (UsuarioId) REFERENCES Usuario (Id),
+    CONSTRAINT FK_Avaliacao_Livro   FOREIGN KEY (LivroId)   REFERENCES Livro (Id),
+    CONSTRAINT UQ_Avaliacao_UsuarioLivro UNIQUE (UsuarioId, LivroId),
+    CONSTRAINT CK_Avaliacao_Nota CHECK (Nota BETWEEN 1 AND 5)
+);
+
+CREATE TABLE Comentario (
+    Id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    UsuarioId       INTEGER NOT NULL,
+    LivroId         INTEGER NOT NULL,
+    ComentarioPaiId INTEGER NULL,
+    Texto           TEXT    NOT NULL,
+    DataCriacao     TEXT    NOT NULL,
+    Editado         INTEGER NOT NULL DEFAULT 0,
+    Excluido        INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT FK_Comentario_Usuario FOREIGN KEY (UsuarioId)       REFERENCES Usuario (Id),
+    CONSTRAINT FK_Comentario_Livro   FOREIGN KEY (LivroId)         REFERENCES Livro (Id),
+    CONSTRAINT FK_Comentario_Pai     FOREIGN KEY (ComentarioPaiId) REFERENCES Comentario (Id),
+    CONSTRAINT CK_Comentario_Texto CHECK (length(Texto) BETWEEN 1 AND 500)
+);
+
+CREATE TABLE Favorito (
+    UsuarioId  INTEGER NOT NULL,
+    LivroId    INTEGER NOT NULL,
+    DataAdicao TEXT    NOT NULL,
+    CONSTRAINT PK_Favorito PRIMARY KEY (UsuarioId, LivroId),
+    CONSTRAINT FK_Favorito_Usuario FOREIGN KEY (UsuarioId) REFERENCES Usuario (Id),
+    CONSTRAINT FK_Favorito_Livro   FOREIGN KEY (LivroId)   REFERENCES Livro (Id)
+);
+
 CREATE INDEX IX_Exemplar_Livro       ON ExemplarDigital (LivroId);
 CREATE INDEX IX_Reserva_Exemplar     ON Reserva (ExemplarId);
 CREATE INDEX IX_Reserva_Leitor       ON Reserva (LeitorId);
 CREATE INDEX IX_Emprestimo_Leitor    ON Emprestimo (LeitorId);
 CREATE INDEX IX_Emprestimo_Exemplar  ON Emprestimo (ExemplarId);
 CREATE INDEX IX_Renovacao_Emprestimo ON Renovacao (EmprestimoId);
+CREATE INDEX IX_Leitura_Usuario      ON Leitura (UsuarioId);
+CREATE INDEX IX_Comentario_Livro     ON Comentario (LivroId);
 
 INSERT INTO Usuario (Tipo, Nome, Email, EstaBloqueado, LimiteEmprestimos) VALUES
 ('ADMINISTRADOR', 'Otavio Ricardo Barbosa dos Santos',     'otavio.santos@biblioteca.com',  0, NULL),
@@ -173,3 +231,40 @@ INSERT INTO Devolucao (EmprestimoId, DataDevolucao, HouveAtraso) VALUES
 INSERT INTO Multa (EmprestimoId, ValorDiario, DiasAtraso, ValorReferenciaObra, ValorTotal, Paga) VALUES
 (4, 1.50, 12, 129.90, 18.00, 1),
 (6, 1.50,  4, 119.00,  6.00, 0);
+
+INSERT INTO Leitura (UsuarioId, LivroId, Status, PaginaAtual, TotalPaginas, UltimaAtualizacao, DataInicio, DataConclusao) VALUES
+(4, 1, 4, 256, 256, '2026-10-30 21:10:00', '2026-10-12 19:00:00', '2026-10-30 21:10:00'),
+(4, 3, 2, 120, 280, '2026-11-22 22:05:00', '2026-11-15 20:30:00', NULL),
+(3, 1, 2,  80, 256, '2026-11-20 18:40:00', '2026-11-11 08:15:00', NULL),
+(5, 5, 3, 150, 336, '2026-11-08 23:00:00', '2026-10-02 21:00:00', NULL),
+(7, 4, 4, 416, 416, '2026-10-18 16:20:00', '2026-09-28 10:00:00', '2026-10-18 16:20:00'),
+(8, 7, 2, 200, 425, '2026-11-23 07:50:00', '2026-10-26 09:00:00', NULL),
+(3, 6, 1,   0, 448, '2026-11-21 12:00:00', NULL,                  NULL),
+(5, 2, 4,  88,  88, '2026-09-14 15:30:00', '2026-09-10 14:00:00', '2026-09-14 15:30:00'),
+(7, 8, 4, 352, 352, '2026-11-03 20:45:00', '2026-10-20 19:30:00', '2026-11-03 20:45:00'),
+(8, 1, 4, 256, 256, '2026-11-09 22:00:00', '2026-10-29 18:00:00', '2026-11-09 22:00:00');
+
+INSERT INTO Avaliacao (UsuarioId, LivroId, Nota, DataAvaliacao) VALUES
+(4, 1, 5, '2026-10-30 21:15:00'),
+(7, 4, 5, '2026-10-18 16:30:00'),
+(5, 2, 4, '2026-09-14 15:40:00'),
+(7, 8, 4, '2026-11-03 21:00:00'),
+(8, 1, 3, '2026-11-09 22:10:00');
+
+INSERT INTO Comentario (UsuarioId, LivroId, ComentarioPaiId, Texto, DataCriacao, Editado, Excluido) VALUES
+(4, 1, NULL, 'Capitu traiu ou nao traiu? Terminei e continuo sem saber.',          '2026-10-30 21:20:00', 0, 0),
+(3, 1, 1,    'Para mim o problema e o narrador: o Bentinho nao e confiavel.',      '2026-11-12 09:00:00', 0, 0),
+(8, 1, 1,    'O Machado deixa a duvida de proposito, e isso que torna o livro bom.', '2026-11-09 22:15:00', 1, 0),
+(7, 4, NULL, 'Assustador como continua atual.',                                    '2026-10-18 16:35:00', 0, 0),
+(8, 7, NULL, 'O capitulo sobre funcoes ja vale o livro inteiro.',                  '2026-11-05 08:10:00', 0, 0),
+(5, 5, NULL, 'Comeco lento, mas o mundo criado pela autora e incrivel.',           '2026-10-20 22:30:00', 0, 0),
+(4, 3, NULL, 'Comentario com spoiler.',                                            '2026-11-18 21:00:00', 0, 1);
+
+INSERT INTO Favorito (UsuarioId, LivroId, DataAdicao) VALUES
+(4, 1, '2026-10-30 21:12:00'),
+(4, 3, '2026-11-15 20:35:00'),
+(3, 6, '2026-11-21 12:05:00'),
+(7, 4, '2026-10-18 16:25:00'),
+(7, 8, '2026-11-03 20:50:00'),
+(8, 7, '2026-10-27 10:00:00'),
+(5, 2, '2026-09-14 15:35:00');

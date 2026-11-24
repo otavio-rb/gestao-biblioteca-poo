@@ -1,0 +1,66 @@
+@model Comentario
+@{
+    // Dados enviados pela tela de detalhes.
+    var leituraId = (int)ViewData["LeituraId"]!;
+    var usuarioId = (int)ViewData["UsuarioId"]!;
+    var podeResponder = (bool)ViewData["PodeResponder"]!;
+
+    var ehAutor = Model.UsuarioId == usuarioId;
+    var ehPrincipal = Model.ComentarioPaiId == null;
+}
+
+<div class="comentario">
+    <div class="comentario-cabecalho">
+        <strong>@Model.NomeAutor</strong>
+        <span class="descricao" style="margin:0">
+            @Model.DataCriacao.ToString("dd/MM/yyyy HH:mm")
+            @if (Model.Editado && !Model.Excluido)
+            {
+                <span class="etiqueta etiqueta-neutra">editado</span>
+            }
+        </span>
+    </div>
+
+    @if (Model.Excluido)
+    {
+        <p class="vazio" style="padding:0">Comentario excluido pelo autor.</p>
+    }
+    else
+    {
+        <p style="margin:0 0 8px">@Model.Texto</p>
+
+        <div class="acoes" style="align-items:flex-start">
+            @if (ehAutor)
+            {
+                <details>
+                    <summary class="botao botao-secundario botao-pequeno">Editar</summary>
+                    <form asp-action="EditarComentario" asp-route-id="@leituraId" method="post" style="margin-top:8px">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="comentarioId" value="@Model.Id" />
+                        <textarea name="texto" maxlength="@Comentario.TamanhoMaximoTexto">@Model.Texto</textarea>
+                        <button class="botao botao-pequeno" type="submit" style="margin-top:6px">Salvar</button>
+                    </form>
+                </details>
+
+                <form asp-action="ExcluirComentario" asp-route-id="@leituraId" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="comentarioId" value="@Model.Id" />
+                    <button class="botao botao-perigo botao-pequeno" type="submit">Excluir</button>
+                </form>
+            }
+
+            @if (ehPrincipal && podeResponder)
+            {
+                <details>
+                    <summary class="botao botao-secundario botao-pequeno">Responder</summary>
+                    <form asp-action="Comentar" asp-route-id="@leituraId" method="post" style="margin-top:8px">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="comentarioPaiId" value="@Model.Id" />
+                        <textarea name="texto" maxlength="@Comentario.TamanhoMaximoTexto" placeholder="Escreva sua resposta"></textarea>
+                        <button class="botao botao-pequeno" type="submit" style="margin-top:6px">Enviar resposta</button>
+                    </form>
+                </details>
+            }
+        </div>
+    }
+</div>

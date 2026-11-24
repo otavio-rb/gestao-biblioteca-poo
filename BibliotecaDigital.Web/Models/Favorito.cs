@@ -22,6 +22,11 @@ public sealed class Favorito
 
     public DateTime DataAdicao { get; private set; }
 
+    // Dado so para exibicao nas telas (preenchido pelo repositorio).
+    public string TituloLivro { get; private set; } = string.Empty;
+
+    public void DescreverContexto(string tituloLivro) => TituloLivro = tituloLivro;
+
     public bool PertenceA(int usuarioId)
     {
         return UsuarioId == usuarioId;
