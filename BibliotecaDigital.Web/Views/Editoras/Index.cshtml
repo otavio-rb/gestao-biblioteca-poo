@@ -1,0 +1,52 @@
+@model List<Editora>
+@{
+    ViewData["Title"] = "Editoras";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Editoras</h1>
+        <p>Cada obra do catalogo pertence a exatamente uma editora.</p>
+    </div>
+    <a class="botao" asp-action="Criar">Nova editora</a>
+</div>
+
+<div class="cartao">
+    @if (Model.Count == 0)
+    {
+        <p class="vazio">Nenhuma editora cadastrada.</p>
+    }
+    else
+    {
+        <div class="tabela-rolavel">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Endereco</th>
+                        <th>Acoes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var editora in Model)
+                    {
+                        <tr>
+                            <td>@editora.Nome</td>
+                            <td>@editora.Endereco</td>
+                            <td>
+                                <div class="acoes">
+                                    <a class="botao botao-secundario botao-pequeno" asp-action="Editar" asp-route-id="@editora.Id">Editar</a>
+                                    <form asp-action="Excluir" asp-route-id="@editora.Id" method="post"
+                                          onsubmit="return confirm('Excluir a editora @editora.Nome?');">
+                                        @Html.AntiForgeryToken()
+                                        <button class="botao botao-perigo botao-pequeno" type="submit">Excluir</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

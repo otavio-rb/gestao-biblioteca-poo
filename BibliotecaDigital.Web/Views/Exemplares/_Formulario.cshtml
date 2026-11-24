@@ -1,0 +1,35 @@
+@model ExemplarFormViewModel
+
+@Html.AntiForgeryToken()
+<input asp-for="Id" type="hidden" />
+<input asp-for="LivroId" type="hidden" />
+<input asp-for="TituloLivro" type="hidden" />
+<div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+<div class="campo">
+    <label asp-for="Formato"></label>
+    <input asp-for="Formato" placeholder="EPUB, PDF, MOBI, AUDIOBOOK" />
+    <span asp-validation-for="Formato" class="validacao"></span>
+</div>
+
+<div class="campo">
+    <label asp-for="Arquivo"></label>
+    <input asp-for="Arquivo" placeholder="nome-do-arquivo.epub" />
+    <span asp-validation-for="Arquivo" class="validacao"></span>
+</div>
+
+<div class="campo">
+    <label asp-for="LicencasTotais"></label>
+    <input asp-for="LicencasTotais" type="number" min="1" max="500" />
+    <small class="descricao">Cada emprestimo consome uma licenca e cada devolucao a restitui.</small>
+    <span asp-validation-for="LicencasTotais" class="validacao"></span>
+</div>
+
+<div class="campo">
+    <label asp-for="Disponivel"></label>
+    <select asp-for="Disponivel">
+        <option value="true">Disponivel para emprestimo</option>
+        <option value="false">Suspenso</option>
+    </select>
+    <small class="descricao">Suspender so e possivel quando nao houver licenca emprestada.</small>
+</div>

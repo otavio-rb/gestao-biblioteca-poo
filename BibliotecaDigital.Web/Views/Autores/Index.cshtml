@@ -1,0 +1,52 @@
+@model List<Autor>
+@{
+    ViewData["Title"] = "Autores";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Autores</h1>
+        <p>Autores existem de forma independente e podem assinar varias obras do acervo.</p>
+    </div>
+    <a class="botao" asp-action="Criar">Novo autor</a>
+</div>
+
+<div class="cartao">
+    @if (Model.Count == 0)
+    {
+        <p class="vazio">Nenhum autor cadastrado.</p>
+    }
+    else
+    {
+        <div class="tabela-rolavel">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Nacionalidade</th>
+                        <th>Acoes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var autor in Model)
+                    {
+                        <tr>
+                            <td>@autor.Nome</td>
+                            <td>@autor.Nacionalidade</td>
+                            <td>
+                                <div class="acoes">
+                                    <a class="botao botao-secundario botao-pequeno" asp-action="Editar" asp-route-id="@autor.Id">Editar</a>
+                                    <form asp-action="Excluir" asp-route-id="@autor.Id" method="post"
+                                          onsubmit="return confirm('Excluir o autor @autor.Nome?');">
+                                        @Html.AntiForgeryToken()
+                                        <button class="botao botao-perigo botao-pequeno" type="submit">Excluir</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

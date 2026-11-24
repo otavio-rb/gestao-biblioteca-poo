@@ -1,0 +1,26 @@
+@model ExemplarFormViewModel
+@{
+    ViewData["Title"] = "Novo exemplar digital";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Novo exemplar digital</h1>
+        <p>Obra: <strong>@Model.TituloLivro</strong></p>
+    </div>
+    <a class="botao botao-secundario" asp-controller="Livros" asp-action="Detalhes" asp-route-id="@Model.LivroId">Voltar</a>
+</div>
+
+<div class="cartao">
+    <form asp-action="Criar" method="post" class="formulario">
+        <partial name="_Formulario" model="Model" />
+        <div class="rodape-formulario">
+            <button class="botao" type="submit">Cadastrar exemplar</button>
+            <a class="botao botao-secundario" asp-controller="Livros" asp-action="Detalhes" asp-route-id="@Model.LivroId">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
