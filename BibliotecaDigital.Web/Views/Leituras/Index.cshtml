@@ -1,4 +1,4 @@
-@model List<LeituraListaViewModel>
+@model LeiturasIndexViewModel
 @{
     ViewData["Title"] = "Leituras";
 }
@@ -6,13 +6,47 @@
 <div class="cabecalho-pagina">
     <div>
         <h1>Leituras</h1>
-        <p>O progresso avanca apenas com a leitura em andamento e conclui automaticamente ao atingir 100%.</p>
+        <p>Acompanhe o progresso de cada leitor, avalie os livros concluidos e participe dos comentarios.</p>
     </div>
-    <a class="botao" asp-action="Criar">Nova sessao de leitura</a>
+    <a class="botao" asp-action="Criar">Nova leitura</a>
 </div>
 
 <div class="cartao">
-    @if (Model.Count == 0)
+    <form asp-action="Index" method="get" class="formulario-linha">
+        <div class="campo">
+            <label for="usuarioId">Ver o historico de um leitor</label>
+            <select id="usuarioId" name="usuarioId" asp-items="Model.Leitores">
+                <option value="">Todos os leitores</option>
+            </select>
+        </div>
+        <button class="botao botao-secundario" type="submit">Filtrar</button>
+    </form>
+</div>
+
+@if (Model.Historico is not null)
+{
+    <div class="grade-indicadores">
+        <div class="indicador">
+            <span>Livros lidos</span>
+            <strong>@Model.Historico.TotalLivrosLidos()</strong>
+        </div>
+        <div class="indicador">
+            <span>Em andamento</span>
+            <strong>@Model.Historico.ListarEmAndamento().Count</strong>
+        </div>
+        <div class="indicador">
+            <span>Leituras no historico</span>
+            <strong>@Model.Historico.GetLeituras().Count</strong>
+        </div>
+        <div class="indicador">
+            <span>Favoritos</span>
+            <strong>@Model.Favoritos.Count</strong>
+        </div>
+    </div>
+}
+
+<div class="cartao">
+    @if (Model.Leituras.Count == 0)
     {
         <p class="vazio">Nenhuma leitura registrada.</p>
     }
@@ -22,39 +56,30 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Obra</th>
+                        <th>Livro</th>
                         <th>Leitor</th>
-                        <th>Status</th>
                         <th>Progresso</th>
-                        <th>Atualizado em</th>
+                        <th>Paginas</th>
+                        <th>Situacao</th>
+                        <th>Atualizada em</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    @foreach (var leitura in Model.Leituras)
                     {
-                        var leitura = item.Leitura;
-                        var percentual = Math.Round(leitura.GetPercentual(), 1);
+                        var percentual = (int)leitura.GetPercentual();
                         <tr>
-                            <td>@item.TituloLivro</td>
-                            <td>@item.NomeLeitor</td>
+                            <td>@leitura.TituloLivro</td>
+                            <td>@leitura.NomeLeitor</td>
                             <td>
-                                @if (leitura.EstaConcluida())
-                                {
-                                    <span class="etiqueta etiqueta-sucesso">Concluida</span>
-                                }
-                                else
-                                {
-                                    <span class="etiqueta etiqueta-neutra">@leitura.Status</span>
-                                }
-                            </td>
-                            <td>
-                                <div class="barra-progresso">
-                                    <span style="width:@percentual.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></span>
+                                <div class="barra-progresso" title="@percentual%">
+                                    <span style="width:@(percentual)%"></span>
                                 </div>
-                                <small>@leitura.Progresso.PaginaAtual / @leitura.Progresso.TotalPaginas (@percentual%)</small>
                             </td>
-                            <td>@leitura.Progresso.UltimaAtualizacao.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@leitura.Progresso.PaginaAtual / @leitura.Progresso.TotalPaginas</td>
+                            <td><partial name="_StatusLeitura" model="leitura.Status" /></td>
+                            <td>@leitura.Progresso.UltimaAtualizacao.ToString("dd/MM/yyyy")</td>
                             <td>
                                 <a class="botao botao-secundario botao-pequeno" asp-action="Detalhes" asp-route-id="@leitura.Id">Abrir</a>
                             </td>
@@ -65,3 +90,26 @@
         </div>
     }
 </div>
+
+@if (Model.Historico is not null)
+{
+    <section class="cartao">
+        <h2>Livros favoritos</h2>
+        @if (Model.Favoritos.Count == 0)
+        {
+            <p class="vazio">Este leitor ainda nao favoritou nenhum livro.</p>
+        }
+        else
+        {
+            <ul class="lista-simples">
+                @foreach (var favorito in Model.Favoritos)
+                {
+                    <li>
+                        <strong>@favorito.TituloLivro</strong>
+                        <span class="descricao"> - adicionado em @favorito.DataAdicao.ToString("dd/MM/yyyy")</span>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+}

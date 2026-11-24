@@ -34,6 +34,11 @@ public sealed class Leitura
 
     public DateTime? DataConclusao { get; private set; }
 
+    // Dados so para exibicao nas telas (preenchidos pelo repositorio).
+    public string TituloLivro { get; private set; } = string.Empty;
+
+    public string NomeLeitor { get; private set; } = string.Empty;
+
     public void Iniciar()
     {
         if (Status != StatusLeitura.NaoIniciada)
@@ -107,6 +112,12 @@ public sealed class Leitura
     public double GetPercentual()
     {
         return Progresso.GetPercentual();
+    }
+
+    public void DescreverContexto(string tituloLivro, string nomeLeitor)
+    {
+        TituloLivro = tituloLivro;
+        NomeLeitor = nomeLeitor;
     }
 
     public void DefinirId(int id) => Id = id;

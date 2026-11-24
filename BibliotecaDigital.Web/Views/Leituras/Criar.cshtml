@@ -1,12 +1,12 @@
 @model LeituraFormViewModel
 @{
-    ViewData["Title"] = "Nova sessao de leitura";
+    ViewData["Title"] = "Nova leitura";
 }
 
 <div class="cabecalho-pagina">
     <div>
-        <h1>Nova sessao de leitura</h1>
-        <p>Cada leitor possui no maximo uma sessao de leitura por obra.</p>
+        <h1>Nova leitura</h1>
+        <p>A leitura comeca como "nao iniciada". Cada leitor pode ter so uma leitura por livro.</p>
     </div>
     <a class="botao botao-secundario" asp-action="Index">Voltar</a>
 </div>
@@ -27,19 +27,19 @@
         <div class="campo">
             <label asp-for="LivroId"></label>
             <select asp-for="LivroId" asp-items="Model.Livros">
-                <option value="">Selecione a obra</option>
+                <option value="">Selecione o livro</option>
             </select>
             <span asp-validation-for="LivroId" class="validacao"></span>
         </div>
 
         <div class="campo">
             <label asp-for="TotalPaginas"></label>
-            <input asp-for="TotalPaginas" type="number" min="1" max="20000" />
+            <input asp-for="TotalPaginas" type="number" min="1" />
             <span asp-validation-for="TotalPaginas" class="validacao"></span>
         </div>
 
         <div class="rodape-formulario">
-            <button class="botao" type="submit">Criar sessao</button>
+            <button class="botao" type="submit">Cadastrar leitura</button>
             <a class="botao botao-secundario" asp-action="Index">Cancelar</a>
         </div>
     </form>

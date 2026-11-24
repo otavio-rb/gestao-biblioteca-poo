@@ -29,6 +29,9 @@ builder.Services.AddScoped<ILivroRepository, LivroRepository>();
 builder.Services.AddScoped<IExemplarRepository, ExemplarRepository>();
 builder.Services.AddScoped<ILeituraRepository, LeituraRepository>();
 builder.Services.AddScoped<IInteracaoRepository, InteracaoRepository>();
+builder.Services.AddScoped<IAvaliacaoRepository, AvaliacaoRepository>();
+builder.Services.AddScoped<IComentarioRepository, ComentarioRepository>();
+builder.Services.AddScoped<IFavoritoRepository, FavoritoRepository>();
 
 var app = builder.Build();
 

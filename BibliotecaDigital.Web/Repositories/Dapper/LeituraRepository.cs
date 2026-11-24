@@ -8,8 +8,13 @@ namespace BibliotecaDigital.Web.Repositories.Dapper;
 
 public sealed class LeituraRepository : RepositorioDapperBase, ILeituraRepository
 {
-    private const string ColunasPadrao = """
-        Id, UsuarioId, LivroId, Status, PaginaAtual, TotalPaginas, UltimaAtualizacao, DataInicio, DataConclusao
+    private const string SelecaoCompleta = """
+        SELECT le.Id, le.UsuarioId, le.LivroId, le.Status, le.PaginaAtual, le.TotalPaginas,
+               le.UltimaAtualizacao, le.DataInicio, le.DataConclusao,
+               l.Titulo AS TituloLivro, u.Nome AS NomeLeitor
+        FROM Leitura le
+        INNER JOIN Livro l   ON l.Id = le.LivroId
+        INNER JOIN Usuario u ON u.Id = le.UsuarioId
         """;
 
     private sealed class LinhaLeitura
@@ -31,6 +36,17 @@ public sealed class LeituraRepository : RepositorioDapperBase, ILeituraRepositor
         public DateTime? DataInicio { get; set; }
 
         public DateTime? DataConclusao { get; set; }
+
+        public string TituloLivro { get; set; } = string.Empty;
+
+        public string NomeLeitor { get; set; } = string.Empty;
+    }
+
+    private sealed class LinhaOpcao
+    {
+        public int Id { get; set; }
+
+        public string Nome { get; set; } = string.Empty;
     }
 
     public LeituraRepository(IFabricaConexao fabricaConexao) : base(fabricaConexao)
@@ -39,30 +55,31 @@ public sealed class LeituraRepository : RepositorioDapperBase, ILeituraRepositor
 
     public IEnumerable<Leitura> ObterTodos() => Executar(conexao =>
     {
-        var sql = $"SELECT {ColunasPadrao} FROM Leitura ORDER BY UltimaAtualizacao DESC;";
+        var sql = $"{SelecaoCompleta} ORDER BY le.UltimaAtualizacao DESC;";
         return conexao.Query<LinhaLeitura>(sql).Select(Mapear).ToList();
     }, "listar as leituras");
 
+    public IEnumerable<Leitura> ObterPorUsuario(int usuarioId) => Executar(conexao =>
+    {
+        var sql = $"{SelecaoCompleta} WHERE le.UsuarioId = @UsuarioId ORDER BY le.UltimaAtualizacao DESC;";
+        return conexao.Query<LinhaLeitura>(sql, new { UsuarioId = usuarioId }).Select(Mapear).ToList();
+    }, "listar as leituras do leitor");
+
     public Leitura? ObterPorId(int id) => Executar(conexao =>
     {
-        var sql = $"SELECT {ColunasPadrao} FROM Leitura WHERE Id = @Id;";
+        var sql = $"{SelecaoCompleta} WHERE le.Id = @Id;";
         var linha = conexao.QuerySingleOrDefault<LinhaLeitura>(sql, new { Id = id });
         return linha is null ? null : Mapear(linha);
     }, "buscar a leitura");
 
-    public IEnumerable<Leitura> ObterPorUsuario(int usuarioId) => Executar(conexao =>
-    {
-        var sql = $"SELECT {ColunasPadrao} FROM Leitura WHERE UsuarioId = @UsuarioId ORDER BY UltimaAtualizacao DESC;";
-        return conexao.Query<LinhaLeitura>(sql, new { UsuarioId = usuarioId }).Select(Mapear).ToList();
-    }, "listar as leituras do usuario");
-
     public Leitura? ObterPorUsuarioELivro(int usuarioId, int livroId) => Executar(conexao =>
     {
-        var sql = $"SELECT {ColunasPadrao} FROM Leitura WHERE UsuarioId = @UsuarioId AND LivroId = @LivroId;";
+        var sql = $"{SelecaoCompleta} WHERE le.UsuarioId = @UsuarioId AND le.LivroId = @LivroId;";
         var linha = conexao.QuerySingleOrDefault<LinhaLeitura>(sql, new { UsuarioId = usuarioId, LivroId = livroId });
         return linha is null ? null : Mapear(linha);
-    }, "buscar a leitura do usuario");
+    }, "buscar a leitura do livro");
 
+    // Monta o HistoricoLeitura do usuario com todas as leituras dele.
     public HistoricoLeitura ObterHistorico(int usuarioId)
     {
         var historico = new HistoricoLeitura(usuarioId);
@@ -74,6 +91,18 @@ public sealed class LeituraRepository : RepositorioDapperBase, ILeituraRepositor
 
         return historico;
     }
+
+    public Dictionary<int, string> ObterLeitores() => Executar(conexao =>
+    {
+        const string sql = "SELECT Id, Nome FROM Usuario WHERE Tipo = 'LEITOR' ORDER BY Nome;";
+        return conexao.Query<LinhaOpcao>(sql).ToDictionary(linha => linha.Id, linha => linha.Nome);
+    }, "listar os leitores");
+
+    public Dictionary<int, string> ObterLivros() => Executar(conexao =>
+    {
+        const string sql = "SELECT Id, Titulo AS Nome FROM Livro ORDER BY Titulo;";
+        return conexao.Query<LinhaOpcao>(sql).ToDictionary(linha => linha.Id, linha => linha.Nome);
+    }, "listar os livros");
 
     public int Inserir(Leitura entidade) => Executar(conexao =>
     {
@@ -105,7 +134,6 @@ public sealed class LeituraRepository : RepositorioDapperBase, ILeituraRepositor
             UPDATE Leitura SET
                 Status = @Status,
                 PaginaAtual = @PaginaAtual,
-                TotalPaginas = @TotalPaginas,
                 UltimaAtualizacao = @UltimaAtualizacao,
                 DataInicio = @DataInicio,
                 DataConclusao = @DataConclusao
@@ -116,7 +144,6 @@ public sealed class LeituraRepository : RepositorioDapperBase, ILeituraRepositor
         {
             Status = (int)entidade.Status,
             entidade.Progresso.PaginaAtual,
-            entidade.Progresso.TotalPaginas,
             entidade.Progresso.UltimaAtualizacao,
             entidade.DataInicio,
             entidade.DataConclusao,
@@ -133,7 +160,7 @@ public sealed class LeituraRepository : RepositorioDapperBase, ILeituraRepositor
     {
         var progresso = ProgressoLeitura.Reconstruir(linha.PaginaAtual, linha.TotalPaginas, linha.UltimaAtualizacao);
 
-        return Leitura.Reconstruir(
+        var leitura = Leitura.Reconstruir(
             linha.Id,
             linha.UsuarioId,
             linha.LivroId,
@@ -141,5 +168,8 @@ public sealed class LeituraRepository : RepositorioDapperBase, ILeituraRepositor
             progresso,
             linha.DataInicio,
             linha.DataConclusao);
+
+        leitura.DescreverContexto(linha.TituloLivro, linha.NomeLeitor);
+        return leitura;
     }
 }

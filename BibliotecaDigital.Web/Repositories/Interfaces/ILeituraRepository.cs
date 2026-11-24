@@ -9,4 +9,9 @@ public interface ILeituraRepository : IRepository<Leitura>
     Leitura? ObterPorUsuarioELivro(int usuarioId, int livroId);
 
     HistoricoLeitura ObterHistorico(int usuarioId);
+
+    // Listas usadas nos formularios: chave = Id, valor = nome ou titulo.
+    Dictionary<int, string> ObterLeitores();
+
+    Dictionary<int, string> ObterLivros();
 }

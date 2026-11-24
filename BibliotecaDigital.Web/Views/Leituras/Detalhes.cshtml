@@ -1,39 +1,54 @@
 @model LeituraDetalhesViewModel
 @{
     var leitura = Model.Leitura;
-    var percentual = Math.Round(leitura.GetPercentual(), 1);
-    ViewData["Title"] = $"Leitura de {Model.TituloLivro}";
+    var percentual = (int)leitura.GetPercentual();
+    var podeComentar = leitura.Status != StatusLeitura.NaoIniciada;
+
+    ViewData["Title"] = leitura.TituloLivro;
+
+    // Usado pelo partial _Comentario.
+    ViewData["LeituraId"] = leitura.Id;
+    ViewData["UsuarioId"] = leitura.UsuarioId;
+    ViewData["PodeResponder"] = podeComentar;
 }
 
 <div class="cabecalho-pagina">
     <div>
-        <h1>@Model.TituloLivro</h1>
-        <p>Sessao de leitura de @Model.NomeLeitor</p>
+        <h1>@leitura.TituloLivro</h1>
+        <p>Leitura de @leitura.NomeLeitor</p>
     </div>
-    <div class="acoes">
-        <a class="botao botao-secundario" asp-controller="Livros" asp-action="Detalhes" asp-route-id="@leitura.LivroId">Ver obra</a>
-        <a class="botao botao-secundario" asp-action="Index">Voltar</a>
-    </div>
+    <a class="botao botao-secundario" asp-action="Index" asp-route-usuarioId="@leitura.UsuarioId">Voltar</a>
 </div>
 
 <div class="grade-duas">
     <section class="cartao">
         <h2>Progresso</h2>
-        <div class="barra-progresso" style="height:14px">
-            <span style="width:@percentual.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></span>
+
+        <div class="barra-progresso" style="height:14px;margin-bottom:8px">
+            <span style="width:@(percentual)%"></span>
         </div>
-        <p class="descricao" style="margin-top:10px">
-            Pagina @leitura.Progresso.PaginaAtual de @leitura.Progresso.TotalPaginas - @percentual% concluido.
-        </p>
+        <p class="descricao">@percentual% lido - pagina @leitura.Progresso.PaginaAtual de @leitura.Progresso.TotalPaginas</p>
 
         <table>
             <tbody>
-                <tr><th>Status</th><td>@leitura.Status</td></tr>
-                <tr><th>Inicio</th><td>@(leitura.DataInicio?.ToString("dd/MM/yyyy HH:mm") ?? "nao iniciada")</td></tr>
+                <tr><th>Situacao</th><td><partial name="_StatusLeitura" model="leitura.Status" /></td></tr>
+                <tr><th>Inicio</th><td>@(leitura.DataInicio?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td></tr>
                 <tr><th>Conclusao</th><td>@(leitura.DataConclusao?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td></tr>
                 <tr><th>Ultima atualizacao</th><td>@leitura.Progresso.UltimaAtualizacao.ToString("dd/MM/yyyy HH:mm")</td></tr>
             </tbody>
         </table>
+
+        @if (leitura.Status == StatusLeitura.EmAndamento)
+        {
+            <form asp-action="RegistrarPagina" asp-route-id="@leitura.Id" method="post" class="formulario-linha" style="margin-top:16px">
+                @Html.AntiForgeryToken()
+                <div class="campo">
+                    <label for="pagina">Parei na pagina</label>
+                    <input id="pagina" name="pagina" type="number" min="0" max="@leitura.Progresso.TotalPaginas" value="@leitura.Progresso.PaginaAtual" />
+                </div>
+                <button class="botao" type="submit">Salvar progresso</button>
+            </form>
+        }
 
         <div class="acoes" style="margin-top:16px">
             @if (leitura.Status == StatusLeitura.NaoIniciada)
@@ -43,17 +58,15 @@
                     <button class="botao" type="submit">Iniciar leitura</button>
                 </form>
             }
+
             @if (leitura.Status == StatusLeitura.EmAndamento)
             {
                 <form asp-action="Pausar" asp-route-id="@leitura.Id" method="post">
                     @Html.AntiForgeryToken()
                     <button class="botao botao-secundario" type="submit">Pausar</button>
                 </form>
-                <form asp-action="Concluir" asp-route-id="@leitura.Id" method="post">
-                    @Html.AntiForgeryToken()
-                    <button class="botao" type="submit">Concluir</button>
-                </form>
             }
+
             @if (leitura.Status == StatusLeitura.Pausada)
             {
                 <form asp-action="Retomar" asp-route-id="@leitura.Id" method="post">
@@ -61,29 +74,114 @@
                     <button class="botao" type="submit">Retomar</button>
                 </form>
             }
-            <form asp-action="Excluir" asp-route-id="@leitura.Id" method="post"
-                  onsubmit="return confirm('Excluir esta sessao de leitura?');">
-                @Html.AntiForgeryToken()
-                <button class="botao botao-perigo" type="submit">Excluir sessao</button>
-            </form>
+
+            @if (leitura.Status == StatusLeitura.EmAndamento || leitura.Status == StatusLeitura.Pausada)
+            {
+                <form asp-action="Concluir" asp-route-id="@leitura.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button class="botao botao-secundario" type="submit">Marcar como concluida</button>
+                </form>
+            }
+
+            @if (leitura.EstaConcluida())
+            {
+                <span class="etiqueta etiqueta-sucesso">Leitura concluida</span>
+            }
         </div>
     </section>
 
     <section class="cartao">
-        <h2>Registrar pagina</h2>
-        <p class="descricao">So avanca com a leitura em andamento; ao chegar na ultima pagina a leitura e concluida.</p>
+        <h2>Avaliacao</h2>
+        <p class="descricao">
+            Media do livro:
+            <strong>@(Model.MediaLivro.HasValue ? Model.MediaLivro.Value.ToString("0.0") + " de 5" : "sem avaliacoes")</strong>
+        </p>
 
-        <form asp-action="RegistrarPagina" method="post" class="formulario">
+        @if (leitura.EstaConcluida())
+        {
+            <form asp-action="Avaliar" asp-route-id="@leitura.Id" method="post" class="formulario-linha">
+                @Html.AntiForgeryToken()
+                <div class="campo">
+                    <label for="nota">Sua nota</label>
+                    <select id="nota" name="nota">
+                        <option value="">Escolha</option>
+                        @for (var nota = Avaliacao.NotaMinima; nota <= Avaliacao.NotaMaxima; nota++)
+                        {
+                            <option value="@nota" selected="@(Model.Avaliacao?.Nota == nota)">@nota</option>
+                        }
+                    </select>
+                </div>
+                <button class="botao" type="submit">@(Model.Avaliacao is null ? "Avaliar" : "Alterar nota")</button>
+            </form>
+
+            @if (Model.Avaliacao is not null)
+            {
+                <p class="descricao" style="margin-top:10px">
+                    Avaliado com nota @Model.Avaliacao.GetNota() em @Model.Avaliacao.DataAvaliacao.ToString("dd/MM/yyyy").
+                </p>
+            }
+        }
+        else
+        {
+            <p class="vazio">A avaliacao fica disponivel depois que a leitura for concluida.</p>
+        }
+
+        <h2 style="margin-top:22px">Favorito</h2>
+        <form asp-action="Favoritar" asp-route-id="@leitura.Id" method="post">
             @Html.AntiForgeryToken()
-            <input type="hidden" name="LeituraId" value="@leitura.Id" />
-            <div class="campo">
-                <label for="pagina">Pagina atual</label>
-                <input id="pagina" name="Pagina" type="number" min="0" max="@leitura.Progresso.TotalPaginas"
-                       value="@leitura.Progresso.PaginaAtual" />
-            </div>
-            <div class="rodape-formulario">
-                <button class="botao" type="submit" disabled="@(leitura.Status != StatusLeitura.EmAndamento)">Atualizar progresso</button>
-            </div>
+            @if (Model.EhFavorito)
+            {
+                <span class="etiqueta etiqueta-sucesso">Esta nos favoritos</span>
+                <button class="botao botao-secundario botao-pequeno" type="submit">Remover dos favoritos</button>
+            }
+            else
+            {
+                <button class="botao" type="submit">Adicionar aos favoritos</button>
+            }
         </form>
     </section>
 </div>
+
+<section class="cartao">
+    <h2>Comentarios sobre o livro</h2>
+
+    @if (podeComentar)
+    {
+        <form asp-action="Comentar" asp-route-id="@leitura.Id" method="post" style="margin-bottom:18px">
+            @Html.AntiForgeryToken()
+            <div class="campo">
+                <label for="texto">Comentar como @leitura.NomeLeitor</label>
+                <textarea id="texto" name="texto" maxlength="@Comentario.TamanhoMaximoTexto" placeholder="O que voce achou? (ate @Comentario.TamanhoMaximoTexto caracteres)"></textarea>
+            </div>
+            <button class="botao" type="submit" style="margin-top:8px">Publicar comentario</button>
+        </form>
+    }
+    else
+    {
+        <p class="descricao">Inicie a leitura para poder comentar.</p>
+    }
+
+    @if (Model.Comentarios.Count == 0)
+    {
+        <p class="vazio">Ainda nao ha comentarios sobre este livro.</p>
+    }
+    else
+    {
+        @foreach (var comentario in Model.ComentariosPrincipais())
+        {
+            var respostas = Model.RespostasDe(comentario.Id);
+
+            <partial name="_Comentario" model="comentario" />
+
+            @if (respostas.Count > 0)
+            {
+                <div class="comentario-respostas" style="margin:-4px 0 12px">
+                    @foreach (var resposta in respostas)
+                    {
+                        <partial name="_Comentario" model="resposta" />
+                    }
+                </div>
+            }
+        }
+    }
+</section>

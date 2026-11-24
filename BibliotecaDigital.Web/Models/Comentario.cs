@@ -58,6 +58,9 @@ public sealed class Comentario
 
     public bool Excluido { get; private set; }
 
+    // Dado so para exibicao nas telas (preenchido pelo repositorio).
+    public string NomeAutor { get; private set; } = string.Empty;
+
     public void Editar(int autorId, string novoTexto)
     {
         GarantirQueEhAutor(autorId);
@@ -125,6 +128,8 @@ public sealed class Comentario
             throw new DominioException("Somente o autor pode alterar este comentario.");
         }
     }
+
+    public void DescreverContexto(string nomeAutor) => NomeAutor = nomeAutor;
 
     public void DefinirId(int id) => Id = id;
 
