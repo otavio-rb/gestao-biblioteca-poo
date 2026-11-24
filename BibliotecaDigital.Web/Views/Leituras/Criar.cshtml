@@ -1,0 +1,50 @@
+@model LeituraFormViewModel
+@{
+    ViewData["Title"] = "Nova sessao de leitura";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Nova sessao de leitura</h1>
+        <p>Cada leitor possui no maximo uma sessao de leitura por obra.</p>
+    </div>
+    <a class="botao botao-secundario" asp-action="Index">Voltar</a>
+</div>
+
+<div class="cartao">
+    <form asp-action="Criar" method="post" class="formulario">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+        <div class="campo">
+            <label asp-for="UsuarioId"></label>
+            <select asp-for="UsuarioId" asp-items="Model.Leitores">
+                <option value="">Selecione o leitor</option>
+            </select>
+            <span asp-validation-for="UsuarioId" class="validacao"></span>
+        </div>
+
+        <div class="campo">
+            <label asp-for="LivroId"></label>
+            <select asp-for="LivroId" asp-items="Model.Livros">
+                <option value="">Selecione a obra</option>
+            </select>
+            <span asp-validation-for="LivroId" class="validacao"></span>
+        </div>
+
+        <div class="campo">
+            <label asp-for="TotalPaginas"></label>
+            <input asp-for="TotalPaginas" type="number" min="1" max="20000" />
+            <span asp-validation-for="TotalPaginas" class="validacao"></span>
+        </div>
+
+        <div class="rodape-formulario">
+            <button class="botao" type="submit">Criar sessao</button>
+            <a class="botao botao-secundario" asp-action="Index">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

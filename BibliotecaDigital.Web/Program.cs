@@ -22,6 +22,13 @@ builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
 builder.Services.AddScoped<ICirculacaoRepository, CirculacaoRepository>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IAutorRepository, AutorRepository>();
+builder.Services.AddScoped<IEditoraRepository, EditoraRepository>();
+builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<ILivroRepository, LivroRepository>();
+builder.Services.AddScoped<IExemplarRepository, ExemplarRepository>();
+builder.Services.AddScoped<ILeituraRepository, LeituraRepository>();
+builder.Services.AddScoped<IInteracaoRepository, InteracaoRepository>();
 
 var app = builder.Build();
 

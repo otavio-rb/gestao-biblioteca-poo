@@ -1,0 +1,67 @@
+@model List<LeituraListaViewModel>
+@{
+    ViewData["Title"] = "Leituras";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Leituras</h1>
+        <p>O progresso avanca apenas com a leitura em andamento e conclui automaticamente ao atingir 100%.</p>
+    </div>
+    <a class="botao" asp-action="Criar">Nova sessao de leitura</a>
+</div>
+
+<div class="cartao">
+    @if (Model.Count == 0)
+    {
+        <p class="vazio">Nenhuma leitura registrada.</p>
+    }
+    else
+    {
+        <div class="tabela-rolavel">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Obra</th>
+                        <th>Leitor</th>
+                        <th>Status</th>
+                        <th>Progresso</th>
+                        <th>Atualizado em</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var leitura = item.Leitura;
+                        var percentual = Math.Round(leitura.GetPercentual(), 1);
+                        <tr>
+                            <td>@item.TituloLivro</td>
+                            <td>@item.NomeLeitor</td>
+                            <td>
+                                @if (leitura.EstaConcluida())
+                                {
+                                    <span class="etiqueta etiqueta-sucesso">Concluida</span>
+                                }
+                                else
+                                {
+                                    <span class="etiqueta etiqueta-neutra">@leitura.Status</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="barra-progresso">
+                                    <span style="width:@percentual.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></span>
+                                </div>
+                                <small>@leitura.Progresso.PaginaAtual / @leitura.Progresso.TotalPaginas (@percentual%)</small>
+                            </td>
+                            <td>@leitura.Progresso.UltimaAtualizacao.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <a class="botao botao-secundario botao-pequeno" asp-action="Detalhes" asp-route-id="@leitura.Id">Abrir</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

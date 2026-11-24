@@ -1,0 +1,89 @@
+@model LeituraDetalhesViewModel
+@{
+    var leitura = Model.Leitura;
+    var percentual = Math.Round(leitura.GetPercentual(), 1);
+    ViewData["Title"] = $"Leitura de {Model.TituloLivro}";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>@Model.TituloLivro</h1>
+        <p>Sessao de leitura de @Model.NomeLeitor</p>
+    </div>
+    <div class="acoes">
+        <a class="botao botao-secundario" asp-controller="Livros" asp-action="Detalhes" asp-route-id="@leitura.LivroId">Ver obra</a>
+        <a class="botao botao-secundario" asp-action="Index">Voltar</a>
+    </div>
+</div>
+
+<div class="grade-duas">
+    <section class="cartao">
+        <h2>Progresso</h2>
+        <div class="barra-progresso" style="height:14px">
+            <span style="width:@percentual.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></span>
+        </div>
+        <p class="descricao" style="margin-top:10px">
+            Pagina @leitura.Progresso.PaginaAtual de @leitura.Progresso.TotalPaginas - @percentual% concluido.
+        </p>
+
+        <table>
+            <tbody>
+                <tr><th>Status</th><td>@leitura.Status</td></tr>
+                <tr><th>Inicio</th><td>@(leitura.DataInicio?.ToString("dd/MM/yyyy HH:mm") ?? "nao iniciada")</td></tr>
+                <tr><th>Conclusao</th><td>@(leitura.DataConclusao?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td></tr>
+                <tr><th>Ultima atualizacao</th><td>@leitura.Progresso.UltimaAtualizacao.ToString("dd/MM/yyyy HH:mm")</td></tr>
+            </tbody>
+        </table>
+
+        <div class="acoes" style="margin-top:16px">
+            @if (leitura.Status == StatusLeitura.NaoIniciada)
+            {
+                <form asp-action="Iniciar" asp-route-id="@leitura.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button class="botao" type="submit">Iniciar leitura</button>
+                </form>
+            }
+            @if (leitura.Status == StatusLeitura.EmAndamento)
+            {
+                <form asp-action="Pausar" asp-route-id="@leitura.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button class="botao botao-secundario" type="submit">Pausar</button>
+                </form>
+                <form asp-action="Concluir" asp-route-id="@leitura.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button class="botao" type="submit">Concluir</button>
+                </form>
+            }
+            @if (leitura.Status == StatusLeitura.Pausada)
+            {
+                <form asp-action="Retomar" asp-route-id="@leitura.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button class="botao" type="submit">Retomar</button>
+                </form>
+            }
+            <form asp-action="Excluir" asp-route-id="@leitura.Id" method="post"
+                  onsubmit="return confirm('Excluir esta sessao de leitura?');">
+                @Html.AntiForgeryToken()
+                <button class="botao botao-perigo" type="submit">Excluir sessao</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="cartao">
+        <h2>Registrar pagina</h2>
+        <p class="descricao">So avanca com a leitura em andamento; ao chegar na ultima pagina a leitura e concluida.</p>
+
+        <form asp-action="RegistrarPagina" method="post" class="formulario">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="LeituraId" value="@leitura.Id" />
+            <div class="campo">
+                <label for="pagina">Pagina atual</label>
+                <input id="pagina" name="Pagina" type="number" min="0" max="@leitura.Progresso.TotalPaginas"
+                       value="@leitura.Progresso.PaginaAtual" />
+            </div>
+            <div class="rodape-formulario">
+                <button class="botao" type="submit" disabled="@(leitura.Status != StatusLeitura.EmAndamento)">Atualizar progresso</button>
+            </div>
+        </form>
+    </section>
+</div>
