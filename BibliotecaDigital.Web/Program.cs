@@ -21,6 +21,7 @@ builder.Services.AddScoped<InicializadorBanco>();
 builder.Services.AddScoped<IEmprestimoRepository, EmprestimoRepository>();
 builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
 builder.Services.AddScoped<ICirculacaoRepository, CirculacaoRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
 var app = builder.Build();
 

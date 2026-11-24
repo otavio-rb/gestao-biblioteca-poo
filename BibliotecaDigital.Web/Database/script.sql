@@ -8,6 +8,16 @@ DROP TABLE IF EXISTS Reserva;
 DROP TABLE IF EXISTS ExemplarDigital;
 DROP TABLE IF EXISTS Livro;
 DROP TABLE IF EXISTS Usuario;
+DROP TABLE IF EXISTS Endereco;
+
+CREATE TABLE Endereco (
+    Id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    Rua    TEXT    NOT NULL,
+    Numero TEXT    NOT NULL,
+    Cidade TEXT    NOT NULL,
+    Estado TEXT    NOT NULL,
+    CEP    TEXT    NOT NULL
+);
 
 CREATE TABLE Usuario (
     Id                INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,7 +25,11 @@ CREATE TABLE Usuario (
     Nome              TEXT    NOT NULL,
     Email             TEXT    NOT NULL UNIQUE,
     EstaBloqueado     INTEGER NOT NULL DEFAULT 0,
-    LimiteEmprestimos INTEGER NULL
+    LimiteEmprestimos INTEGER NULL,
+    Senha             TEXT    NOT NULL DEFAULT '123456',
+    Departamento      TEXT    NULL,
+    EnderecoId        INTEGER NULL,
+    CONSTRAINT FK_Usuario_Endereco FOREIGN KEY (EnderecoId) REFERENCES Endereco (Id)
 );
 
 CREATE TABLE Livro (

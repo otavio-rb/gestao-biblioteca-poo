@@ -1,0 +1,74 @@
+@model BibliotecaDigital.Web.Models.ViewModels.UsuarioFormViewModel
+
+@{
+    ViewData["Title"] = "Novo Usuario";
+}
+
+<h1>Cadastrar Usuario</h1>
+
+<div asp-validation-summary="All" style="color: #b02a37; margin-bottom: 15px;"></div>
+
+<form asp-action="Criar" method="post" style="max-width: 600px; display: flex; flex-direction: column; gap: 12px;">
+    <div>
+        <label asp-for="Nome">Nome</label><br />
+        <input asp-for="Nome" required style="width: 100%; padding: 8px;" />
+    </div>
+
+    <div>
+        <label asp-for="Email">E-mail</label><br />
+        <input asp-for="Email" type="email" required style="width: 100%; padding: 8px;" />
+    </div>
+
+    <div>
+        <label asp-for="Senha">Senha (minimo 6 caracteres)</label><br />
+        <input asp-for="Senha" type="password" required style="width: 100%; padding: 8px;" />
+    </div>
+
+    <div>
+        <label>
+            <input asp-for="EhAdministrador" type="checkbox" /> E Administrador?
+        </label>
+    </div>
+
+    <div>
+        <label asp-for="Departamento">Departamento (apenas para Administrador, ex: TI_Root, Acervo)</label><br />
+        <input asp-for="Departamento" style="width: 100%; padding: 8px;" />
+    </div>
+
+    <hr />
+    <h3>Endereco</h3>
+
+    <div>
+        <label asp-for="Rua">Rua</label><br />
+        <input asp-for="Rua" required style="width: 100%; padding: 8px;" />
+    </div>
+
+    <div>
+        <label asp-for="Numero">Numero</label><br />
+        <input asp-for="Numero" required style="width: 100%; paddi
+        g: 8px;" />
+    </div>
+
+    <div>
+        <label asp-for="Cidade">Cidade</label><br />
+        <input asp-for="Cidade" required style="width: 100%; paddi
+        g: 8px;" />
+    </div>
+
+    <div>
+        <label asp-for="Estado">Estado (ex: SP)</label><br />
+        <input asp-for="Estado" required style="width: 100%; paddi
+        g: 8px;" />
+    </div>
+
+    <div>
+        <label asp-for="CEP">CEP</label><br />
+        <input asp-for="CEP" required style="width: 100%; padding:
+        8px;" />
+    </div>
+
+    <div style="margin-top: 10px; display: flex; gap: 10px;">
+        <button type="submit">Salvar</button>
+        <a asp-action="Index">Voltar</a>
+    </div>
+</form>

@@ -21,6 +21,7 @@
             </a>
             <nav class="menu">
                 <a class="@(controller == "Home" ? "ativo" : null)" asp-controller="Home" asp-action="Index">Painel</a>
+                <a class="@(controller == "Usuarios" ? "ativo" : null)" asp-controller="Usuarios" asp-action="Index">Usuarios</a>
                 <a class="@(controller == "Emprestimos" ? "ativo" : null)" asp-controller="Emprestimos" asp-action="Index">Emprestimos</a>
                 <a class="@(controller == "Reservas" ? "ativo" : null)" asp-controller="Reservas" asp-action="Index">Reservas</a>
             </nav>
