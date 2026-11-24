@@ -1,0 +1,252 @@
+@model LivroDetalhesViewModel
+@{
+    var livro = Model.Livro;
+    ViewData["Title"] = livro.Titulo;
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>@livro.Titulo</h1>
+        <p>@string.Join(", ", livro.Autores.Select(autor => autor.Nome)) - @livro.Editora.Nome</p>
+    </div>
+    <div class="acoes">
+        <a class="botao botao-secundario" asp-action="Editar" asp-route-id="@livro.Id">Editar obra</a>
+        <a class="botao" asp-controller="Exemplares" asp-action="Criar" asp-route-livroId="@livro.Id">Novo exemplar</a>
+        <a class="botao botao-secundario" asp-action="Index">Voltar</a>
+    </div>
+</div>
+
+<div class="grade-duas">
+    <section class="cartao">
+        <h2>Ficha catalografica</h2>
+        <table>
+            <tbody>
+                <tr><th>ISBN</th><td>@livro.Isbn</td></tr>
+                <tr><th>Ano</th><td>@livro.AnoPublicacao</td></tr>
+                <tr><th>Editora</th><td>@livro.Editora.Nome<br /><small>@livro.Editora.Endereco</small></td></tr>
+                <tr><th>Categorias</th><td>@(livro.Categorias.Count == 0 ? "-" : string.Join(", ", livro.Categorias.Select(categoria => categoria.Nome)))</td></tr>
+                <tr><th>Valor de referencia</th><td>@Model.ValorReferencia.ToString("C")</td></tr>
+                <tr><th>Nota media</th><td>@(Model.Avaliacoes.Count == 0 ? "sem avaliacoes" : $"{Model.NotaMedia} / 5 ({Model.Avaliacoes.Count} avaliacao(oes))")</td></tr>
+            </tbody>
+        </table>
+        @if (!string.IsNullOrWhiteSpace(livro.Descricao))
+        {
+            <p class="descricao" style="margin-top:14px">@livro.Descricao</p>
+        }
+    </section>
+
+    <section class="cartao">
+        <h2>Exemplares digitais</h2>
+        <p class="descricao">Composicao: excluir a obra remove todos os exemplares abaixo.</p>
+        @if (livro.Exemplares.Count == 0)
+        {
+            <p class="vazio">Nenhum exemplar digital cadastrado. A obra nao pode ser emprestada.</p>
+        }
+        else
+        {
+            <div class="tabela-rolavel">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Formato</th>
+                            <th>Arquivo</th>
+                            <th>Situacao</th>
+                            <th>Acoes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var exemplar in livro.Exemplares)
+                        {
+                            <tr>
+                                <td>@exemplar.Formato</td>
+                                <td>@exemplar.Arquivo</td>
+                                <td>
+                                    @if (exemplar.VerificarDisponibilidade())
+                                    {
+                                        <span class="etiqueta etiqueta-sucesso">Disponivel</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="etiqueta etiqueta-atencao">Indisponivel</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="acoes">
+                                        <a class="botao botao-secundario botao-pequeno" asp-controller="Exemplares" asp-action="Editar" asp-route-id="@exemplar.Id">Editar</a>
+                                        <form asp-controller="Exemplares" asp-action="Excluir" method="post"
+                                              onsubmit="return confirm('Excluir este exemplar digital?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@exemplar.Id" />
+                                            <input type="hidden" name="livroId" value="@livro.Id" />
+                                            <button class="botao botao-perigo botao-pequeno" type="submit">Excluir</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>
+
+<section class="cartao">
+    <h2>Interacao do leitor</h2>
+    <p class="descricao">
+        Avaliar exige leitura concluida; comentar exige leitura iniciada. As duas regras vivem nas entidades de dominio.
+    </p>
+
+    <div class="grade-duas">
+        <div>
+            <h3>Avaliar obra</h3>
+            <form asp-action="Avaliar" method="post" class="formulario-linha">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="LivroId" value="@livro.Id" />
+                <div class="campo">
+                    <label for="avaliacao-leitor">Leitor</label>
+                    <select id="avaliacao-leitor" name="UsuarioId" asp-items="Model.Leitores">
+                        <option value="">Selecione</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="avaliacao-nota">Nota</label>
+                    <select id="avaliacao-nota" name="Nota">
+                        @for (var nota = 1; nota <= 5; nota++)
+                        {
+                            <option value="@nota">@nota</option>
+                        }
+                    </select>
+                </div>
+                <button class="botao" type="submit">Registrar nota</button>
+            </form>
+        </div>
+
+        <div>
+            <h3>Favoritar</h3>
+            <form asp-action="AlternarFavorito" method="post" class="formulario-linha">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="livroId" value="@livro.Id" />
+                <div class="campo">
+                    <label for="favorito-leitor">Leitor</label>
+                    <select id="favorito-leitor" name="usuarioId" asp-items="Model.Leitores">
+                        <option value="">Selecione</option>
+                    </select>
+                </div>
+                <button class="botao botao-secundario" type="submit">Adicionar / remover</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<section class="cartao">
+    <h2>Comentarios (@Model.Comentarios.Count)</h2>
+
+    <form asp-action="Comentar" method="post" class="formulario" style="margin-bottom:20px">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="LivroId" value="@livro.Id" />
+        <div class="campo">
+            <label for="comentario-leitor">Leitor</label>
+            <select id="comentario-leitor" name="UsuarioId" asp-items="Model.Leitores">
+                <option value="">Selecione</option>
+            </select>
+        </div>
+        <div class="campo campo-largo">
+            <label for="comentario-texto">Comentario</label>
+            <textarea id="comentario-texto" name="Texto" maxlength="500" placeholder="Ate 500 caracteres"></textarea>
+        </div>
+        <div class="rodape-formulario">
+            <button class="botao" type="submit">Publicar</button>
+        </div>
+    </form>
+
+    @if (Model.Raizes.Count == 0)
+    {
+        <p class="vazio">Nenhum comentario publicado.</p>
+    }
+    else
+    {
+        foreach (var comentario in Model.Raizes)
+        {
+            var respostas = Model.RespostasDe(comentario.Id);
+            <article class="comentario">
+                <div class="comentario-cabecalho">
+                    <strong>@Model.NomeDe(comentario.UsuarioId)</strong>
+                    <small>
+                        @comentario.DataCriacao.ToString("dd/MM/yyyy HH:mm")
+                        @if (comentario.Editado)
+                        {
+                            <span class="etiqueta etiqueta-neutra">editado</span>
+                        }
+                    </small>
+                </div>
+                <p>@(comentario.Excluido ? "[comentario removido pelo autor]" : comentario.Texto)</p>
+
+                @if (!comentario.Excluido)
+                {
+                    <form asp-action="ExcluirComentario" method="post" class="formulario-linha">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@comentario.Id" />
+                        <input type="hidden" name="livroId" value="@livro.Id" />
+                        <input type="hidden" name="usuarioId" value="@comentario.UsuarioId" />
+                        <button class="botao botao-perigo botao-pequeno" type="submit">Excluir (autor)</button>
+                    </form>
+                }
+
+                @if (respostas.Count > 0)
+                {
+                    <div class="comentario-respostas">
+                        @foreach (var resposta in respostas)
+                        {
+                            <div>
+                                <div class="comentario-cabecalho">
+                                    <strong>@Model.NomeDe(resposta.UsuarioId)</strong>
+                                    <small>@resposta.DataCriacao.ToString("dd/MM/yyyy HH:mm")</small>
+                                </div>
+                                <p>@(resposta.Excluido ? "[comentario removido pelo autor]" : resposta.Texto)</p>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <form asp-action="Comentar" method="post" class="formulario-linha" style="margin-top:10px">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="LivroId" value="@livro.Id" />
+                    <input type="hidden" name="ComentarioPaiId" value="@comentario.Id" />
+                    <div class="campo">
+                        <label for="resposta-leitor-@comentario.Id">Responder como</label>
+                        <select id="resposta-leitor-@comentario.Id" name="UsuarioId" asp-items="Model.Leitores">
+                            <option value="">Selecione</option>
+                        </select>
+                    </div>
+                    <div class="campo" style="flex:1">
+                        <label for="resposta-texto-@comentario.Id">Resposta</label>
+                        <input id="resposta-texto-@comentario.Id" name="Texto" maxlength="500" />
+                    </div>
+                    <button class="botao botao-secundario botao-pequeno" type="submit">Responder</button>
+                </form>
+            </article>
+        }
+    }
+</section>
+
+<section class="cartao">
+    <h2>Avaliacoes registradas</h2>
+    @if (Model.Avaliacoes.Count == 0)
+    {
+        <p class="vazio">Nenhuma avaliacao registrada.</p>
+    }
+    else
+    {
+        <ul class="lista-simples">
+            @foreach (var avaliacao in Model.Avaliacoes)
+            {
+                <li>
+                    <strong>@Model.NomeDe(avaliacao.UsuarioId)</strong> - nota @avaliacao.GetNota()/5
+                    <br />
+                    <small>@avaliacao.DataAvaliacao.ToString("dd/MM/yyyy HH:mm")</small>
+                </li>
+            }
+        </ul>
+    }
+</section>

@@ -22,6 +22,10 @@
             <nav class="menu">
                 <a class="@(controller == "Home" ? "ativo" : null)" asp-controller="Home" asp-action="Index">Painel</a>
                 <a class="@(controller == "Usuarios" ? "ativo" : null)" asp-controller="Usuarios" asp-action="Index">Usuarios</a>
+                <a class="@(controller == "Livros" ? "ativo" : null)" asp-controller="Livros" asp-action="Index">Acervo</a>
+                <a class="@(controller == "Autores" ? "ativo" : null)" asp-controller="Autores" asp-action="Index">Autores</a>
+                <a class="@(controller == "Editoras" ? "ativo" : null)" asp-controller="Editoras" asp-action="Index">Editoras</a>
+                <a class="@(controller == "Categorias" ? "ativo" : null)" asp-controller="Categorias" asp-action="Index">Categorias</a>
                 <a class="@(controller == "Emprestimos" ? "ativo" : null)" asp-controller="Emprestimos" asp-action="Index">Emprestimos</a>
                 <a class="@(controller == "Reservas" ? "ativo" : null)" asp-controller="Reservas" asp-action="Index">Reservas</a>
                 <a class="@(controller == "Leituras" ? "ativo" : null)" asp-controller="Leituras" asp-action="Index">Leituras</a>

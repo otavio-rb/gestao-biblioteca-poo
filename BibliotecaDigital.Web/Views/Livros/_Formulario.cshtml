@@ -1,0 +1,59 @@
+@model LivroFormViewModel
+
+@Html.AntiForgeryToken()
+<input asp-for="Id" type="hidden" />
+<div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+<div class="campo campo-largo">
+    <label asp-for="Titulo"></label>
+    <input asp-for="Titulo" />
+    <span asp-validation-for="Titulo" class="validacao"></span>
+</div>
+
+<div class="campo">
+    <label asp-for="Isbn"></label>
+    <input asp-for="Isbn" placeholder="10 ou 13 digitos" />
+    <span asp-validation-for="Isbn" class="validacao"></span>
+</div>
+
+<div class="campo">
+    <label asp-for="AnoPublicacao"></label>
+    <input asp-for="AnoPublicacao" type="number" min="1" max="2100" />
+    <span asp-validation-for="AnoPublicacao" class="validacao"></span>
+</div>
+
+<div class="campo">
+    <label asp-for="EditoraId"></label>
+    <select asp-for="EditoraId" asp-items="Model.Editoras">
+        <option value="">Selecione a editora</option>
+    </select>
+    <span asp-validation-for="EditoraId" class="validacao"></span>
+</div>
+
+<div class="campo">
+    <label asp-for="ValorReferencia"></label>
+    <input asp-for="ValorReferencia" type="number" step="0.01" min="0.01"
+           value="@Model.ValorReferencia.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+    <small class="descricao">Teto usado no calculo da multa por atraso.</small>
+    <span asp-validation-for="ValorReferencia" class="validacao"></span>
+</div>
+
+<div class="campo">
+    <label asp-for="AutorIds"></label>
+    <select asp-for="AutorIds" asp-items="Model.AutoresDisponiveis" multiple></select>
+    <small class="descricao">Segure Ctrl para selecionar mais de um autor.</small>
+    <span asp-validation-for="AutorIds" class="validacao"></span>
+</div>
+
+<div class="campo">
+    <label asp-for="CategoriaIds"></label>
+    <select asp-for="CategoriaIds" asp-items="Model.CategoriasDisponiveis" multiple></select>
+    <small class="descricao">Segure Ctrl para selecionar mais de uma categoria.</small>
+    <span asp-validation-for="CategoriaIds" class="validacao"></span>
+</div>
+
+<div class="campo campo-largo">
+    <label asp-for="Descricao"></label>
+    <textarea asp-for="Descricao"></textarea>
+    <span asp-validation-for="Descricao" class="validacao"></span>
+</div>

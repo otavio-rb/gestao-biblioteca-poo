@@ -1,0 +1,88 @@
+@model List<Livro>
+@{
+    ViewData["Title"] = "Acervo";
+    var termo = ViewBag.Termo as string;
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Acervo digital</h1>
+        <p>Cada obra agrega autores e categorias e compoe seus proprios exemplares digitais.</p>
+    </div>
+    <a class="botao" asp-action="Criar">Nova obra</a>
+</div>
+
+<div class="cartao">
+    <form asp-action="Index" method="get" class="busca">
+        <input type="search" name="termo" value="@termo" placeholder="Buscar por titulo ou ISBN" />
+        <button class="botao" type="submit">Buscar</button>
+        @if (!string.IsNullOrWhiteSpace(termo))
+        {
+            <a class="botao botao-secundario" asp-action="Index">Limpar</a>
+        }
+    </form>
+</div>
+
+<div class="cartao">
+    @if (Model.Count == 0)
+    {
+        <p class="vazio">Nenhuma obra encontrada.</p>
+    }
+    else
+    {
+        <div class="tabela-rolavel">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Titulo</th>
+                        <th>Autores</th>
+                        <th>Editora</th>
+                        <th>Categorias</th>
+                        <th>Exemplares</th>
+                        <th>Acoes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var livro in Model)
+                    {
+                        var disponiveis = livro.Exemplares.Count(exemplar => exemplar.VerificarDisponibilidade());
+                        <tr>
+                            <td>
+                                <strong>@livro.Titulo</strong><br />
+                                <small>@livro.Isbn - @livro.AnoPublicacao</small>
+                            </td>
+                            <td>@string.Join(", ", livro.Autores.Select(autor => autor.Nome))</td>
+                            <td>@livro.Editora.Nome</td>
+                            <td>@(livro.Categorias.Count == 0 ? "-" : string.Join(", ", livro.Categorias.Select(categoria => categoria.Nome)))</td>
+                            <td>
+                                @if (livro.Exemplares.Count == 0)
+                                {
+                                    <span class="etiqueta etiqueta-atencao">Sem exemplar</span>
+                                }
+                                else if (disponiveis > 0)
+                                {
+                                    <span class="etiqueta etiqueta-sucesso">@disponiveis de @livro.Exemplares.Count disponivel(is)</span>
+                                }
+                                else
+                                {
+                                    <span class="etiqueta etiqueta-atencao">Indisponivel</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="acoes">
+                                    <a class="botao botao-secundario botao-pequeno" asp-action="Detalhes" asp-route-id="@livro.Id">Detalhes</a>
+                                    <a class="botao botao-secundario botao-pequeno" asp-action="Editar" asp-route-id="@livro.Id">Editar</a>
+                                    <form asp-action="Excluir" asp-route-id="@livro.Id" method="post"
+                                          onsubmit="return confirm('Excluir @livro.Titulo e todos os seus exemplares digitais?');">
+                                        @Html.AntiForgeryToken()
+                                        <button class="botao botao-perigo botao-pequeno" type="submit">Excluir</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

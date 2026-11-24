@@ -1,0 +1,29 @@
+@model LivroFormViewModel
+@{
+    ViewData["Title"] = "Editar obra";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Editar obra</h1>
+        <p>Os exemplares digitais da obra sao gerenciados na tela de detalhes.</p>
+    </div>
+    <div class="acoes">
+        <a class="botao botao-secundario" asp-action="Detalhes" asp-route-id="@Model.Id">Detalhes</a>
+        <a class="botao botao-secundario" asp-action="Index">Voltar</a>
+    </div>
+</div>
+
+<div class="cartao">
+    <form asp-action="Editar" method="post" class="formulario">
+        <partial name="_Formulario" model="Model" />
+        <div class="rodape-formulario">
+            <button class="botao" type="submit">Salvar alteracoes</button>
+            <a class="botao botao-secundario" asp-action="Index">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

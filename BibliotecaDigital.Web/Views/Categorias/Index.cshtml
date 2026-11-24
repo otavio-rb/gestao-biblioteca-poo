@@ -1,0 +1,52 @@
+@model List<Categoria>
+@{
+    ViewData["Title"] = "Categorias";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Categorias</h1>
+        <p>Uma obra pode pertencer a uma ou mais categorias de assunto.</p>
+    </div>
+    <a class="botao" asp-action="Criar">Nova categoria</a>
+</div>
+
+<div class="cartao">
+    @if (Model.Count == 0)
+    {
+        <p class="vazio">Nenhuma categoria cadastrada.</p>
+    }
+    else
+    {
+        <div class="tabela-rolavel">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Descricao</th>
+                        <th>Acoes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var categoria in Model)
+                    {
+                        <tr>
+                            <td>@categoria.Nome</td>
+                            <td>@categoria.Descricao</td>
+                            <td>
+                                <div class="acoes">
+                                    <a class="botao botao-secundario botao-pequeno" asp-action="Editar" asp-route-id="@categoria.Id">Editar</a>
+                                    <form asp-action="Excluir" asp-route-id="@categoria.Id" method="post"
+                                          onsubmit="return confirm('Excluir a categoria @categoria.Nome?');">
+                                        @Html.AntiForgeryToken()
+                                        <button class="botao botao-perigo botao-pequeno" type="submit">Excluir</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

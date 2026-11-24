@@ -72,6 +72,13 @@ public sealed class LeituraRepository : RepositorioDapperBase, ILeituraRepositor
         return linha is null ? null : Mapear(linha);
     }, "buscar a leitura");
 
+    public Leitura? ObterPorUsuarioELivro(int usuarioId, int livroId) => Executar(conexao =>
+    {
+        var sql = $"{SelecaoCompleta} WHERE le.UsuarioId = @UsuarioId AND le.LivroId = @LivroId;";
+        var linha = conexao.QuerySingleOrDefault<LinhaLeitura>(sql, new { UsuarioId = usuarioId, LivroId = livroId });
+        return linha is null ? null : Mapear(linha);
+    }, "buscar a leitura do livro");
+
     // Monta o HistoricoLeitura do usuario com todas as leituras dele.
     public HistoricoLeitura ObterHistorico(int usuarioId)
     {

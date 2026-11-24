@@ -1,0 +1,41 @@
+@model EditoraFormViewModel
+@{
+    ViewData["Title"] = "Editar editora";
+}
+
+<div class="cabecalho-pagina">
+    <div>
+        <h1>Editar editora</h1>
+        <p>Os livros publicados continuam vinculados a este cadastro.</p>
+    </div>
+    <a class="botao botao-secundario" asp-action="Index">Voltar</a>
+</div>
+
+<div class="cartao">
+    <form asp-action="Editar" method="post" class="formulario">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" />
+        <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+        <div class="campo">
+            <label asp-for="Nome"></label>
+            <input asp-for="Nome" />
+            <span asp-validation-for="Nome" class="validacao"></span>
+        </div>
+
+        <div class="campo campo-largo">
+            <label asp-for="Endereco"></label>
+            <input asp-for="Endereco" />
+            <span asp-validation-for="Endereco" class="validacao"></span>
+        </div>
+
+        <div class="rodape-formulario">
+            <button class="botao" type="submit">Salvar alteracoes</button>
+            <a class="botao botao-secundario" asp-action="Index">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
