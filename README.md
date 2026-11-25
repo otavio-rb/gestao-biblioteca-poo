@@ -9,14 +9,14 @@ FATEC Ribeirão Preto — Análise e Desenvolvimento de Sistemas
 
 ## Equipe e divisão dos módulos
 
-| Módulo | Responsável | RA | Situação |
-| --- | --- | --- | --- |
-| 1 — Gestão de usuários | Felipe dos Santos Lofrano | 2840482511043 | Pendente |
-| 2 — Catálogo e acervo digital | Gabriel Enzo dos Santos Teodoro Souza | 2840482421015 | Pendente |
-| **3 — Empréstimos e devoluções** | **Otávio Ricardo Barbosa dos Santos** | **2840482511039** | **Implementado** |
-| 4 — Leitura e interação digital | Claudio Mauricio Bispo Junior | 2840482421007 | Pendente |
+| Módulo | Responsável | RA |
+| --- | --- | --- |
+| 1 — Gestão de usuários | Gabriel Enzo dos Santos Teodoro Souza | 2840482421015 |
+| 2 — Catálogo e acervo digital | Claudio Mauricio Bispo Junior | 2840482421007 |
+| 3 — Empréstimos e devoluções | Otávio Ricardo Barbosa dos Santos | 2840482511039 |
+| 4 — Leitura e interação digital | Felipe dos Santos Lofrano | 2840482511043 |
 
-> Quem for implementar os módulos 1, 2 e 4 deve ler o **[GUIA.md](GUIA.md)** antes de começar: ele descreve o padrão arquitetural a seguir, onde cada arquivo entra e o que precisa ser ajustado na fronteira com o módulo 3.
+Os quatro módulos estão implementados e integrados: cada um vai das entidades de domínio até a tela Razor. O **[GUIA.md](GUIA.md)** descreve o padrão arquitetural seguido em cada camada.
 
 ---
 
@@ -164,7 +164,7 @@ classDiagram
     ExemplarEmCirculacao "1" <.. "0..*" Reserva : enfileira
 ```
 
-`LeitorEmCirculacao` e `ExemplarEmCirculacao` são a visão que o módulo 3 tem do leitor e do exemplar: só os dados e comportamentos de que a circulação precisa. Quando os módulos 1 e 2 entregarem `Leitor` e `ExemplarDigital`, essas duas classes passam a ser alimentadas por eles — a troca está isolada em `ICirculacaoRepository` e descrita no [GUIA.md](GUIA.md).
+`LeitorEmCirculacao` e `ExemplarEmCirculacao` são a visão que o módulo 3 tem do leitor e do exemplar: só os dados e comportamentos de que a circulação precisa. Elas são alimentadas por `CirculacaoRepository`, que consulta as tabelas dos módulos 1 e 2. Toda a dependência entre a circulação e os outros módulos passa por `ICirculacaoRepository` — nenhum controller ou entidade do módulo 3 conhece `Leitor` ou `ExemplarDigital` diretamente.
 
 ### Onde cada conceito de POO aparece
 
@@ -255,7 +255,7 @@ BibliotecaDigital.Web/
 └── Program.cs              Injeção de dependência e pipeline HTTP
 ```
 
-As pastas `Views/Usuarios`, `Views/Autores`, `Views/Editoras`, `Views/Categorias`, `Views/Livros`, `Views/Exemplares` e `Views/Leituras` estão criadas e vazias, aguardando os módulos 1, 2 e 4.
+Cada entidade com tela própria tem sua pasta em `Views/`: `Usuarios`, `Livros`, `Autores`, `Editoras`, `Categorias`, `Exemplares`, `Emprestimos`, `Reservas` e `Leituras`.
 
 ---
 
