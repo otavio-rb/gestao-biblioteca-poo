@@ -1,0 +1,63 @@
+@model BibliotecaDigital.Web.Models.ViewModels.UsuarioFormViewModel
+
+@{
+    ViewData["Title"] = "Editar Usuario";
+}
+
+<h1>Editar Usuario</h1>
+
+<div asp-validation-summary="All" style="color: #b02a37; margin-bottom: 15px;"></div>
+
+<p style="color: #5b6478; max-width: 600px;">
+    Perfil: <b>@(Model.EhAdministrador ? "Administrador" : "Leitor")</b>@(string.IsNullOrWhiteSpace(Model.Departamento) ? "" : $" — {Model.Departamento}").
+    O perfil e a senha nao sao alterados por esta tela.
+</p>
+
+<form asp-action="Editar" method="post" style="max-width: 600px; display: flex; flex-direction: column; gap: 12px;">
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="EhAdministrador" type="hidden" />
+    <input asp-for="Departamento" type="hidden" />
+
+    <div>
+        <label asp-for="Nome">Nome</label><br />
+        <input asp-for="Nome" required style="width: 100%; padding: 8px;" />
+    </div>
+
+    <div>
+        <label asp-for="Email">E-mail</label><br />
+        <input asp-for="Email" type="email" required style="width: 100%; padding: 8px;" />
+    </div>
+
+    <hr />
+    <h3>Endereco</h3>
+
+    <div>
+        <label asp-for="Rua">Rua</label><br />
+        <input asp-for="Rua" required style="width: 100%; padding: 8px;" />
+    </div>
+
+    <div>
+        <label asp-for="Numero">Numero</label><br />
+        <input asp-for="Numero" required style="width: 100%; padding: 8px;" />
+    </div>
+
+    <div>
+        <label asp-for="Cidade">Cidade</label><br />
+        <input asp-for="Cidade" required style="width: 100%; padding: 8px;" />
+    </div>
+
+    <div>
+        <label asp-for="Estado">Estado (ex: SP)</label><br />
+        <input asp-for="Estado" required style="width: 100%; padding: 8px;" />
+    </div>
+
+    <div>
+        <label asp-for="CEP">CEP</label><br />
+        <input asp-for="CEP" required style="width: 100%; padding: 8px;" />
+    </div>
+
+    <div style="margin-top: 10px; display: flex; gap: 10px;">
+        <button type="submit">Salvar alteracoes</button>
+        <a asp-action="Index">Voltar</a>
+    </div>
+</form>

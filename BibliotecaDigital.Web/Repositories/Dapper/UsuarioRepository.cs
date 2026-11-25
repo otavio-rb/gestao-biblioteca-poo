@@ -106,6 +106,78 @@ namespace BibliotecaDigital.Web.Repositories.Dapper
             });
         }
 
+        public async Task AtualizarAsync(Usuario usuario)
+        {
+            var existente = await BuscarPorEmailAsync(usuario.Email);
+            if (existente != null && existente.Id != usuario.Id)
+                throw new EmailDuplicadoException(usuario.Email);
+
+            using var conexao = AbrirConexao();
+
+            const string sqlUsuario = @"
+                UPDATE Usuario SET Nome = @Nome, Email = @Email WHERE Id = @Id;";
+
+            await conexao.ExecuteAsync(sqlUsuario, new { usuario.Nome, usuario.Email, usuario.Id });
+
+            const string sqlEnderecoId = "SELECT EnderecoId FROM Usuario WHERE Id = @Id;";
+            var enderecoId = await conexao.ExecuteScalarAsync<int?>(sqlEnderecoId, new { usuario.Id });
+
+            var endereco = usuario.EnderecoResidencial;
+
+            if (enderecoId == null)
+            {
+                const string sqlInserir = @"
+                    INSERT INTO Endereco (Rua, Numero, Cidade, Estado, CEP)
+                    VALUES (@Rua, @Numero, @Cidade, @Estado, @CEP);
+                    SELECT last_insert_rowid();";
+
+                var novoId = await conexao.ExecuteScalarAsync<int>(sqlInserir, endereco);
+                await conexao.ExecuteAsync(
+                    "UPDATE Usuario SET EnderecoId = @EnderecoId WHERE Id = @Id;",
+                    new { EnderecoId = novoId, usuario.Id });
+                return;
+            }
+
+            const string sqlEndereco = @"
+                UPDATE Endereco SET Rua = @Rua, Numero = @Numero, Cidade = @Cidade,
+                                    Estado = @Estado, CEP = @CEP
+                WHERE Id = @Id;";
+
+            await conexao.ExecuteAsync(sqlEndereco, new
+            {
+                endereco.Rua,
+                endereco.Numero,
+                endereco.Cidade,
+                endereco.Estado,
+                endereco.CEP,
+                Id = enderecoId
+            });
+        }
+
+        public async Task<bool> PossuiCirculacaoAsync(int id)
+        {
+            using var conexao = AbrirConexao();
+
+            const string sql = @"
+                SELECT (SELECT COUNT(1) FROM Emprestimo WHERE LeitorId = @Id)
+                     + (SELECT COUNT(1) FROM Reserva    WHERE LeitorId = @Id);";
+
+            return await conexao.ExecuteScalarAsync<long>(sql, new { Id = id }) > 0;
+        }
+
+        public async Task ExcluirAsync(int id)
+        {
+            using var conexao = AbrirConexao();
+
+            const string sqlEnderecoId = "SELECT EnderecoId FROM Usuario WHERE Id = @Id;";
+            var enderecoId = await conexao.ExecuteScalarAsync<int?>(sqlEnderecoId, new { Id = id });
+
+            await conexao.ExecuteAsync("DELETE FROM Usuario WHERE Id = @Id;", new { Id = id });
+
+            if (enderecoId != null)
+                await conexao.ExecuteAsync("DELETE FROM Endereco WHERE Id = @Id;", new { Id = enderecoId });
+        }
+
         private Usuario MapearUsuario(dynamic row)
         {
             var endereco = row.EndId != null

@@ -50,20 +50,30 @@
                     @(usuario.EstaBloqueado ? "Bloqueado" : "Ativo")
                 </td>
                 <td style="padding: 12px;">
-                    @if (usuario.EstaBloqueado)
-                    {
-                        <form asp-action="Desbloquear" method="post" style="display: inline;">
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        <a asp-action="Editar" asp-route-id="@usuario.Id">Editar</a>
+
+                        @if (usuario.EstaBloqueado)
+                        {
+                            <form asp-action="Desbloquear" method="post" style="display: inline;">
+                                <input type="hidden" name="id" value="@usuario.Id" />
+                                <button type="submit">Desbloquear</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="Bloquear" method="post" style="display: inline;">
+                                <input type="hidden" name="id" value="@usuario.Id" />
+                                <button type="submit">Bloquear</button>
+                            </form>
+                        }
+
+                        <form asp-action="Excluir" method="post" style="display: inline;"
+                              onsubmit="return confirm('Excluir @usuario.Nome?');">
                             <input type="hidden" name="id" value="@usuario.Id" />
-                            <button type="submit">Desbloquear</button>
+                            <button type="submit">Excluir</button>
                         </form>
-                    }
-                    else
-                    {
-                        <form asp-action="Bloquear" method="post" style="display: inline;">
-                            <input type="hidden" name="id" value="@usuario.Id" />
-                            <button type="submit">Bloquear</button>
-                        </form>
-                    }
+                    </div>
                 </td>
             </tr>
         }

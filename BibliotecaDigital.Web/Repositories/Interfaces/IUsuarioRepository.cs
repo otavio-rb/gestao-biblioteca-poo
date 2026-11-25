@@ -11,5 +11,8 @@ namespace BibliotecaDigital.Web.Repositories.Interfaces
         Task<Usuario?> BuscarPorEmailAsync(string email);
         Task<IEnumerable<Usuario>> ListarTodosAsync();
         Task AtualizarStatusBloqueioAsync(Usuario usuario);
+        Task AtualizarAsync(Usuario usuario);
+        Task<bool> PossuiCirculacaoAsync(int id);
+        Task ExcluirAsync(int id);
     }
 }

@@ -28,6 +28,7 @@ namespace BibliotecaDigital.Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Criar(UsuarioFormViewModel model)
         {
             try
@@ -50,6 +51,7 @@ namespace BibliotecaDigital.Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Bloquear(int id)
         {
             try
@@ -70,6 +72,7 @@ namespace BibliotecaDigital.Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Desbloquear(int id)
         {
             try
@@ -80,6 +83,68 @@ namespace BibliotecaDigital.Web.Controllers
                 usuario.Desbloquear();
                 await _usuarioRepository.AtualizarStatusBloqueioAsync(usuario);
                 TempData["Sucesso"] = $"Usuário {usuario.Nome} desbloqueado.";
+            }
+            catch (DominioException ex)
+            {
+                TempData["Erro"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> Editar(int id)
+        {
+            var usuario = await _usuarioRepository.BuscarPorIdAsync(id);
+
+            if (usuario == null)
+            {
+                TempData["Erro"] = "Usuário não encontrado.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(UsuarioFormViewModel.DoUsuario(usuario));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Editar(UsuarioFormViewModel model)
+        {
+            try
+            {
+                var usuario = await _usuarioRepository.BuscarPorIdAsync(model.Id)
+                    ?? throw new RegistroNaoEncontradoException("Usuário", model.Id);
+
+                var endereco = usuario.EnderecoResidencial;
+                endereco.AtualizarEndereco(model.Rua, model.Numero, model.Cidade, model.Estado, model.CEP);
+
+                usuario.AtualizarDados(model.Nome, model.Email, endereco);
+                await _usuarioRepository.AtualizarAsync(usuario);
+
+                TempData["Sucesso"] = $"Usuário {usuario.Nome} atualizado com sucesso!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DominioException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(model);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Excluir(int id)
+        {
+            try
+            {
+                var usuario = await _usuarioRepository.BuscarPorIdAsync(id)
+                    ?? throw new RegistroNaoEncontradoException("Usuário", id);
+
+                if (await _usuarioRepository.PossuiCirculacaoAsync(id))
+                    throw new DominioException(
+                        $"{usuario.Nome} possui empréstimos ou reservas registrados e não pode ser excluído.");
+
+                await _usuarioRepository.ExcluirAsync(id);
+                TempData["Sucesso"] = $"Usuário {usuario.Nome} excluído.";
             }
             catch (DominioException ex)
             {
